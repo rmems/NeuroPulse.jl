@@ -4,6 +4,7 @@
 
 ### Added
 
+- Executable GH#14 interop-contract tests for `ActivityRegion` / `RegionRouter` shapes (#14)
 - `save_state` / `load_state!` (`load_state` alias) for `RegionRouter` checkpointing (#28)
 - `LICENSE-MIT` and `LICENSE-APACHE-2.0` license files
 - SPDX license identifiers to source files

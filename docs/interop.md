@@ -1,6 +1,6 @@
 # TemporalFocus interop contract
 
-**Status:** frozen docs/contract (LIM-228 / GH#14)  
+**Status:** frozen docs/contract (RM-460 / LIM-228 / GH#14)  
 **Scope:** common data shapes at the package boundary — not new SNN types, not routing math.
 
 This document freezes the compact interop shapes that callers and sibling systems
