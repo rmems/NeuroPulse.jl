@@ -300,6 +300,25 @@ using TemporalFocus
         too_many = vcat(regions, [ActivityRegion(0.2f0, zeros(Float32, n_out))])
         @test_throws ArgumentError update_routing!(router, too_many)
 
+        below = [
+            ActivityRegion(-0.1f0, zeros(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+        ]
+        @test_throws ArgumentError update_routing!(router, below)
+        above = [
+            ActivityRegion(1.1f0, zeros(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+        ]
+        @test_throws ArgumentError update_routing!(router, above)
+        bounds = [
+            ActivityRegion(0.0f0, zeros(Float32, n_out)),
+            ActivityRegion(1.0f0, ones(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+        ]
+        update_routing!(router, bounds)
+
         # Compact contract only — no spike-train / event-list types in this package.
         @test !isdefined(TemporalFocus, :SpikeTrain)
         @test !isdefined(TemporalFocus, :TemporalBuffer)

@@ -11,7 +11,7 @@
 
 ### Changed
 
-- `update_routing!` now rejects `regions` whose length is not `n_regions` (`ArgumentError`, #14)
+- `update_routing!` now rejects `regions` whose length is not `n_regions`, and spike rates outside `[0, 1]` (`ArgumentError`, #14)
 - Switched license from GPL-3.0-or-later to dual MIT/Apache-2.0 (#13)
 
 ### Removed

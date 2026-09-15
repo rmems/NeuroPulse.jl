@@ -268,8 +268,8 @@ end
 
 Compute relevance scores for all regions from the current activity states.
 `regions` is a `Vector{ActivityRegion}` — one per region. Throws `ArgumentError` if
-`length(regions) != router.n_regions` or if any region's `output` length is not
-`router.n_out`.
+`length(regions) != router.n_regions`, if any region's `output` length is not
+`router.n_out`, or if any `last_spike_rate` is outside `[0, 1]`.
 
 The result is stored in `router.routing_weights` (n_regions × Float32).
 
@@ -308,6 +308,11 @@ function update_routing!(router::RegionRouter, regions::Vector{ActivityRegion})
         spike_rate = region.last_spike_rate
         isfinite(spike_rate) ||
             throw(ArgumentError("non-finite spike rate for region $i (got $spike_rate)"))
+        (0.0f0 <= spike_rate <= 1.0f0) || throw(
+            ArgumentError(
+                "spike rate for region $i must be in [0, 1], got $spike_rate",
+            ),
+        )
 
         out = region.output
         length(out) == router.n_out || throw(
