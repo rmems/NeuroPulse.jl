@@ -295,7 +295,7 @@ using TemporalFocus
         ]
         @test_throws ArgumentError update_routing!(router, wrong_width)
 
-        too_few = regions[1:(n_regions - 1)]
+        too_few = regions[1:(n_regions-1)]
         @test_throws ArgumentError update_routing!(router, too_few)
         too_many = vcat(regions, [ActivityRegion(0.2f0, zeros(Float32, n_out))])
         @test_throws ArgumentError update_routing!(router, too_many)

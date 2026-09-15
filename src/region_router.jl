@@ -289,9 +289,7 @@ Softmax normalisation → sum(relevance) = 1.0, each ≥ MIN_SCORE.
 function update_routing!(router::RegionRouter, regions::Vector{ActivityRegion})
     n = router.n_regions
     length(regions) == n || throw(
-        ArgumentError(
-            "regions length $(length(regions)) does not match n_regions=$n",
-        ),
+        ArgumentError("regions length $(length(regions)) does not match n_regions=$n"),
     )
     cfg = router.config
     _validate_floor_feasibility(cfg.min_score, n)
@@ -309,9 +307,7 @@ function update_routing!(router::RegionRouter, regions::Vector{ActivityRegion})
         isfinite(spike_rate) ||
             throw(ArgumentError("non-finite spike rate for region $i (got $spike_rate)"))
         (0.0f0 <= spike_rate <= 1.0f0) || throw(
-            ArgumentError(
-                "spike rate for region $i must be in [0, 1], got $spike_rate",
-            ),
+            ArgumentError("spike rate for region $i must be in [0, 1], got $spike_rate"),
         )
 
         out = region.output
