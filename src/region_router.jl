@@ -267,7 +267,9 @@ end
     update_routing!(router, regions) -> nothing
 
 Compute relevance scores for all regions from the current activity states.
-`regions` is a `Vector{ActivityRegion}` — one per region.
+`regions` is a `Vector{ActivityRegion}` — one per region. Throws `ArgumentError` if
+`length(regions) != router.n_regions` or if any region's `output` length is not
+`router.n_out`.
 
 The result is stored in `router.routing_weights` (n_regions × Float32).
 
@@ -286,6 +288,11 @@ Softmax normalisation → sum(relevance) = 1.0, each ≥ MIN_SCORE.
 """
 function update_routing!(router::RegionRouter, regions::Vector{ActivityRegion})
     n = router.n_regions
+    length(regions) == n || throw(
+        ArgumentError(
+            "regions length $(length(regions)) does not match n_regions=$n",
+        ),
+    )
     cfg = router.config
     _validate_floor_feasibility(cfg.min_score, n)
     raw = router.prev_relevance   # staging buffer; committed after finiteness checks

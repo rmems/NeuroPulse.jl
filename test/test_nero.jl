@@ -288,12 +288,17 @@ using TemporalFocus
         @test all(>=(router.config.min_score), router.routing_weights)
         @test isapprox(sum(router.routing_weights), 1.0f0, atol = 1e-4)
 
-        wrong = [
+        wrong_width = [
             ActivityRegion(0.5f0, zeros(Float32, n_out - 1)),
             ActivityRegion(0.5f0, zeros(Float32, n_out)),
             ActivityRegion(0.5f0, zeros(Float32, n_out)),
         ]
-        @test_throws ArgumentError update_routing!(router, wrong)
+        @test_throws ArgumentError update_routing!(router, wrong_width)
+
+        too_few = regions[1:(n_regions - 1)]
+        @test_throws ArgumentError update_routing!(router, too_few)
+        too_many = vcat(regions, [ActivityRegion(0.2f0, zeros(Float32, n_out))])
+        @test_throws ArgumentError update_routing!(router, too_many)
 
         # Compact contract only — no spike-train / event-list types in this package.
         @test !isdefined(TemporalFocus, :SpikeTrain)
