@@ -19,7 +19,7 @@ runtime, training system, or hardware integration layer.
 ## Documentation
 
 ```@contents
-Pages = ["overview.md", "api.md", "roadmap.md"]
+Pages = ["overview.md", "api.md", "interop.md", "roadmap.md"]
 Depth = 2
 ```
 
@@ -49,8 +49,8 @@ router.routing_weights
 
 ## Package
 
-The Julia package name is **TemporalFocus**. The GitHub repository is still named
-[NeuroPulse.jl](https://github.com/Limen-Neural/NeuroPulse.jl).
+The Julia package name is **TemporalFocus**. The GitHub repository is
+[NeuroPulse.jl](https://github.com/rmems/NeuroPulse.jl).
 
 ```@docs
 TemporalFocus

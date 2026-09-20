@@ -1,14 +1,13 @@
 # TemporalFocus interop contract
 
-**Status:** frozen docs/contract (LIM-228 / GH#14)  
+**Status:** frozen docs/contract (RM-460 / LIM-228 / GH#14)  
 **Scope:** common data shapes at the package boundary — not new SNN types, not routing math.
 
 This document freezes the compact interop shapes that callers and sibling systems
 (including non-Julia sides) should use when feeding TemporalFocus and reading its
 outputs. It describes what the package **owns** and what it **does not**.
 
-> **Obsolete path:** `src/nero_orchestrator.jl` no longer exists. Routing state
-> lives in `src/region_router.jl`; per-region summaries live in
+> Routing state lives in `src/region_router.jl`; per-region summaries live in
 > `src/activity_region.jl`. Prefer the generic names below. Legacy aliases
 > (`LobeState`, `NeroOrchestrator`, …) remain for backward compatibility only.
 
@@ -64,7 +63,8 @@ ActivityRegion(n_out::Int)  # zero rate, zero readout of length n_out
 
 **Caller duties**
 
-- Supply `last_spike_rate` already normalised to `[0, 1]` (package does not rescale Hz).
+- Supply `last_spike_rate` already normalised to `[0, 1]` (package does not rescale Hz;
+  `update_routing!` rejects finite rates outside that interval).
 - Ensure `length(output) == router.n_out`.
 - Prefer `Float32` end-to-end; mixed precision is not part of the contract.
 

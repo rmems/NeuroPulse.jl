@@ -168,7 +168,7 @@ resolve to the same types/functions; use the preferred names above for new code.
 
 A few defaults still reflect the package's original extraction context:
 
-- the default lobe names are `Attention`, `FFN`, `Memory`, and `Output`
+- the default region names are `Region1`–`Region4` (historical 4-component example layout)
 - the default inhibition matrix is tuned for a 4-component example layout
 - `adapt_leak!` default stress scale is percent-like in `[0, 100]` (custom `stress_adapter` allowed)
 - the package currently exposes NERO terminology directly in type/function names
