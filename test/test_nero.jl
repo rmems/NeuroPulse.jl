@@ -249,6 +249,82 @@ using TemporalFocus
         @test isapprox(sum(router.routing_weights), 1.0f0, atol = 1e-4)
     end
 
+    @testset "interop data-shape contract (GH#14)" begin
+        n_regions, n_out = 3, 8
+        router = RegionRouter(
+            n_regions = n_regions,
+            n_out = n_out,
+            region_names = ["A", "B", "C"],
+        )
+
+        @test fieldnames(ActivityRegion) === (:last_spike_rate, :output)
+        region = ActivityRegion(0.5f0, zeros(Float32, n_out))
+        @test region.last_spike_rate isa Float32
+        @test region.output isa Vector{Float32}
+        @test eltype(region.output) === Float32
+        @test length(region.output) == n_out
+
+        @test router.routing_weights isa Vector{Float32}
+        @test length(router.routing_weights) == n_regions
+        @test isapprox(sum(router.routing_weights), 1.0f0, atol = 1e-5)
+        @test size(router.readout_ema) == (n_regions, n_out)
+        @test eltype(router.readout_ema) === Float32
+        @test length(router.spike_density) == n_regions
+        @test length(router.surprise) == n_regions
+        @test length(router.prev_routing_weights) == n_regions
+        @test size(router.inhibition_matrix) == (n_regions, n_regions)
+        @test size(router.adjacency_matrix) == (n_regions, n_regions)
+        @test router.config isa RoutingConfig
+
+        regions = [
+            ActivityRegion(0.9f0, ones(Float32, n_out)),
+            ActivityRegion(0.4f0, 0.5f0 .* ones(Float32, n_out)),
+            ActivityRegion(0.1f0, zeros(Float32, n_out)),
+        ]
+        @test all(r -> 0.0f0 <= r.last_spike_rate <= 1.0f0, regions)
+        update_routing!(router, regions)
+        @test length(router.routing_weights) == n_regions
+        @test eltype(router.routing_weights) === Float32
+        @test all(>=(router.config.min_score), router.routing_weights)
+        @test isapprox(sum(router.routing_weights), 1.0f0, atol = 1e-4)
+
+        wrong_width = [
+            ActivityRegion(0.5f0, zeros(Float32, n_out - 1)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+        ]
+        @test_throws ArgumentError update_routing!(router, wrong_width)
+
+        too_few = regions[1:(n_regions-1)]
+        @test_throws ArgumentError update_routing!(router, too_few)
+        too_many = vcat(regions, [ActivityRegion(0.2f0, zeros(Float32, n_out))])
+        @test_throws ArgumentError update_routing!(router, too_many)
+
+        below = [
+            ActivityRegion(-0.1f0, zeros(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+        ]
+        @test_throws ArgumentError update_routing!(router, below)
+        above = [
+            ActivityRegion(1.1f0, zeros(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+        ]
+        @test_throws ArgumentError update_routing!(router, above)
+        bounds = [
+            ActivityRegion(0.0f0, zeros(Float32, n_out)),
+            ActivityRegion(1.0f0, ones(Float32, n_out)),
+            ActivityRegion(0.5f0, zeros(Float32, n_out)),
+        ]
+        update_routing!(router, bounds)
+
+        # Compact contract only — no spike-train / event-list types in this package.
+        @test !isdefined(TemporalFocus, :SpikeTrain)
+        @test !isdefined(TemporalFocus, :TemporalBuffer)
+        @test !isdefined(TemporalFocus, :SpikeEvent)
+    end
+
     # ── Backward compatibility tests ─────────────────────────────────────────
 
     @testset "backward-compatible aliases exist" begin

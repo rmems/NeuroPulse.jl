@@ -29,14 +29,14 @@ That is acceptable for now, but likely not the final naming scheme.
 
 ### 2. Default assumptions are still historical
 
-The default lobe names are:
-- `Attention`
-- `FFN`
-- `Memory`
-- `Output`
+The default region names are:
+- `Region1`
+- `Region2`
+- `Region3`
+- `Region4`
 
-Those are useful examples, but they imply a specific older context. Future cleanup should
-separate example defaults from the core conceptual model.
+Those are useful examples, but they still imply a four-component layout. Future cleanup
+should separate example defaults from the core conceptual model.
 
 ### 3. Stress adaptation is generic with a default percent-scale adapter
 
@@ -70,7 +70,7 @@ A stronger future TemporalFocus would look like this:
 - explicit ownership boundaries
 - neutral examples by default
 - configurable routing/inhibition policies
-- clearer interop contracts with upstream SNN and reservoir libraries
+- adapter notes with upstream SNN and reservoir libraries (compact `ActivityRegion` / `RegionRouter` shapes are already frozen in `interop.md`, GH#14)
 - documentation that describes both current behavior and intended evolution
 
 ## What this library should remain
