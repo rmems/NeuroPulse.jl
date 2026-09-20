@@ -29,7 +29,7 @@ You are an AI coding assistant working on NeuroPulse.jl (`Project.toml` name: `T
 - Run the suite: `julia --project=. -e 'using Pkg; Pkg.test()'`.
 - Run examples: `julia --project=. examples/three_region.jl`, also `examples/six_region.jl` and `examples/reservoir_integration.jl`.
 - Use `git` for version control and follow existing branch naming conventions.
-- Let GitHub Actions validate changes. CI currently tests **Julia 1.12 × {ubuntu, macOS, windows}** only (no multi-version matrix).
+- Let GitHub Actions validate changes. CI currently tests **Julia 1.12 on ubuntu-latest** only (no OS or version matrix).
 
 ## Output & Communication
 
