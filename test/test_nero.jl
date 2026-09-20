@@ -319,10 +319,13 @@ using TemporalFocus
         ]
         update_routing!(router, bounds)
 
-        # Compact contract only — no spike-train / event-list types in this package.
-        @test !isdefined(TemporalFocus, :SpikeTrain)
-        @test !isdefined(TemporalFocus, :TemporalBuffer)
-        @test !isdefined(TemporalFocus, :SpikeEvent)
+        # Routing stays compact (`ActivityRegion` only). Spike types are the
+        # Attention surface (ADR 0002), not inputs to `update_routing!`.
+        @test isdefined(TemporalFocus, :SpikeEvent)
+        @test isdefined(TemporalFocus, :SpikeTrain)
+        @test isdefined(TemporalFocus, :TemporalBuffer)
+        @test !hasmethod(update_routing!, Tuple{RegionRouter, SpikeTrain})
+        @test_throws MethodError update_routing!(router, SpikeTrain())
     end
 
     # ── Backward compatibility tests ─────────────────────────────────────────
