@@ -324,7 +324,7 @@ using TemporalFocus
         @test isdefined(TemporalFocus, :SpikeEvent)
         @test isdefined(TemporalFocus, :SpikeTrain)
         @test isdefined(TemporalFocus, :TemporalBuffer)
-        @test !hasmethod(update_routing!, Tuple{RegionRouter, SpikeTrain})
+        @test !hasmethod(update_routing!, Tuple{RegionRouter,SpikeTrain})
         @test_throws MethodError update_routing!(router, SpikeTrain())
     end
 
