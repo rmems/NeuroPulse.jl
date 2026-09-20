@@ -40,31 +40,34 @@ What this means in practice:
 
 ## What NeuroPulse owns
 
-NeuroPulse owns spike-driven relevance routing logic:
+NeuroPulse owns spike-driven relevance routing **and** coincidence attention:
 
 - `ActivityRegion` as a compact per-region summary (`Float32` rate in `[0,1]`, readout of length `n_out`)
 - `RegionRouter` as the mutable routing state (`routing_weights` length `n_regions`, sum ~1)
 - `update_routing!` as the per-tick routing update
 - `routing_diagnostics` for lightweight inspection/logging
 - `adapt_leak!` as a small optional helper for stress-aware leak adaptation
+- `SpikeEvent` / `SpikeTrain` / `TemporalBuffer` and `spike_attention_*` kernels
+  (`TemporalFocus.Attention`, imported from TemporalFocus.jl — ADR 0002)
 
-The frozen interop shapes (and what the package deliberately does **not** own — e.g. spike
-event lists / full trains) are documented in [`docs/interop.md`](docs/interop.md).
+Routing still consumes compact rates and readouts. Attention is a separate public
+surface for spike events and trains. See [`docs/interop.md`](docs/interop.md) and
+[`docs/src/package-identity.md`](docs/src/package-identity.md).
 
 ## What NeuroPulse does not own
 
 NeuroPulse does not own:
 
-- spike event lists or full spike trains
 - full neuron or reservoir simulation
 - training loops or plasticity pipelines
 - token embeddings or transformer execution
 - hardware telemetry ingestion
 - deployment/runtime supervision
 - model-specific ANN/LLM adapters
+- finance / HFT semantics (order books, positions, PnL, market data)
 
 If a workflow needs those pieces, they should live in surrounding libraries or applications
-that feed compact readouts into NeuroPulse.
+that feed compact readouts (or spike trains) into NeuroPulse.
 
 ## Installation
 
@@ -159,6 +162,13 @@ RegionRouter(; n_regions=4, n_out=16, region_names=DEFAULT_REGION_NAMES)
 update_routing!(router::RegionRouter, regions::Vector{ActivityRegion})
 routing_diagnostics(router::RegionRouter)
 adapt_leak!(leak_rate::Ref{Float32}, stress::Real; min_leak=0.01f0, max_leak=0.25f0, stress_adapter=nothing)
+
+SpikeEvent(neuron_id, t, value=1.0f0)
+SpikeTrain(events=SpikeEvent[])
+TemporalBuffer(window, events=SpikeEvent[])
+spike_attention_discrete(source, context, readout)
+spike_attention_temporal(source, context, readout; τ=1.0f0)
+spike_attention_continuous(source_buffer, context_buffer, readout; τ=1.0f0)
 ```
 
 Legacy aliases (`LobeState`, `NeroOrchestrator`, `update_relevance!`, `nero_diagnostics`)
@@ -185,6 +195,7 @@ Source markdown lives in `docs/` (Documenter pages under `docs/src/`):
 - `docs/src/overview.md` — architecture, scope, and intended usage
 - `docs/src/api.md` — exported types/functions and behavior notes
 - `docs/src/interop.md` — frozen data-shape / interop contract (rates, readouts, routing weights)
+- `docs/src/package-identity.md` — ADR 0002 survivor UUID and dual-`TemporalFocus` rule
 - `docs/src/roadmap.md` — gaps, next cleanup targets, and candid project status
 
 (Root copies under `docs/*.md` may exist for GitHub browsing; Documenter builds from `docs/src/`.)
@@ -200,8 +211,9 @@ julia --project=docs docs/make.jl
 
 This repository is **NeuroPulse.jl** (`rmems/NeuroPulse.jl`). The Julia `Project.toml`
 `name` and loadable module may still say `TemporalFocus` temporarily; that is a package-metadata
-lag, not the public identity. A sibling `TemporalFocus` line is consolidating **into**
-NeuroPulse — do not treat TemporalFocus as this repository's public name.
+lag, not the public identity. The sibling `TemporalFocus.jl` attention surface is imported
+here (ADR 0002). Do not add that repository's retired UUID `7f3c9f2a-…` to an environment
+that already depends on this package.
 
 Earlier names (`SpikenautAttention` / `SpikenautNero`) are historical only. NERO remains in
 the current public API via `NeroOrchestrator` and `nero_diagnostics`.

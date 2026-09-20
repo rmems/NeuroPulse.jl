@@ -1,0 +1,608 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+# Ported from rmems/TemporalFocus.jl @ eb38c70 (ADR 0002).
+# Experiment-harness tests stay in TemporalFocus.jl with experiments/ provenance.
+
+using TemporalFocus
+using Test
+using Random
+
+@testset "Attention" begin
+    @testset "Discrete Attention" begin
+        q = SpikeTrain([SpikeEvent(1, 0.10f0, 1.0f0), SpikeEvent(2, 0.20f0, 1.0f0)])
+        k = SpikeTrain([
+            SpikeEvent(1, 0.15f0, 1.0f0),
+            SpikeEvent(1, 0.25f0, 1.0f0),
+            SpikeEvent(3, 0.30f0, 1.0f0),
+        ])
+        v = Float32[
+            1 0
+            0 1
+            1 1
+        ]
+
+        out = spike_attention_discrete(q, k, v)
+
+        @test out == Float32[2, 0]
+    end
+
+    @testset "Temporal Attention" begin
+        q = SpikeTrain([SpikeEvent(1, 0.10f0, 1.0f0)])
+        k = SpikeTrain([SpikeEvent(1, 0.30f0, 1.0f0)])
+        v = Float32[
+            2 1
+            0 3
+        ]
+
+        out = spike_attention_temporal(q, k, v; τ = 0.20f0)
+        expected_weight = exp(-1.0f0)
+
+        @test out ≈ expected_weight .* Float32[2, 1] atol = 1.0f-6
+    end
+
+    @testset "Continuous Attention" begin
+        buffer_q = TemporalBuffer(0.30f0, [SpikeEvent(1, 0.50f0, 1.0f0)])
+        buffer_k = TemporalBuffer(
+            0.30f0,
+            [SpikeEvent(1, 0.35f0, 1.0f0), SpikeEvent(1, 0.90f0, 1.0f0)],
+        )
+        v = Float32[
+            1 2
+            3 4
+        ]
+
+        out = spike_attention_continuous(buffer_q, buffer_k, v; τ = 0.15f0)
+
+        @test out ≈ exp(-1.0f0) .* Float32[1, 2] atol = 1.0f-6
+    end
+
+    @testset "Normalization" begin
+        l1 = Float32[2, 2, 4]
+        maxn = Float32[2, 6, 3]
+
+        @test normalize_l1!(l1) == Float32[0.25, 0.25, 0.5]
+        @test normalize_max!(maxn) == Float32[1/3, 1, 0.5]
+    end
+
+    @testset "Buffer Pruning" begin
+        @testset "Basic pruning" begin
+            buffer = TemporalBuffer(
+                0.25f0,
+                [
+                    SpikeEvent(1, 0.10f0, 1.0f0),
+                    SpikeEvent(2, 0.55f0, 1.0f0),
+                    SpikeEvent(3, 0.80f0, 1.0f0),
+                ],
+            )
+
+            prune!(buffer, 0.80f0)
+
+            @test length(buffer.events) == 2
+            @test [event.neuron_id for event in buffer.events] == [2, 3]
+        end
+
+        @testset "Prune empty buffer" begin
+            buffer = TemporalBuffer(0.25f0, SpikeEvent[])
+            prune!(buffer, 1.0f0)
+            @test isempty(buffer.events)
+        end
+
+        @testset "Prune removes all events" begin
+            buffer = TemporalBuffer(
+                0.10f0,
+                [SpikeEvent(1, 0.10f0, 1.0f0), SpikeEvent(2, 0.20f0, 1.0f0)],
+            )
+            prune!(buffer, 10.0f0)
+            @test isempty(buffer.events)
+        end
+
+        @testset "Prune keeps all events" begin
+            events = [SpikeEvent(1, 0.90f0, 1.0f0), SpikeEvent(2, 0.95f0, 1.0f0)]
+            buffer = TemporalBuffer(1.0f0, events)
+            prune!(buffer, 1.0f0)
+            @test length(buffer.events) == 2
+        end
+    end
+
+    @testset "SpikeEvent constructor" begin
+        @test SpikeEvent(1, 0.5).t isa Float32
+        @test SpikeEvent(1, 0.5).value == 1.0f0
+        @test SpikeEvent(1, 0.5, 2.0).value == 2.0f0
+    end
+
+    @testset "SpikeTrain constructor" begin
+        @test isempty(SpikeTrain().events)
+        @test SpikeTrain([SpikeEvent(1, 0.5f0)]).events[1].neuron_id == 1
+        stored = SpikeEvent[SpikeEvent(1, 0.5f0)]
+        @test SpikeTrain(view(stored, :)).events == stored
+    end
+
+    @testset "TemporalBuffer constructor" begin
+        buf = TemporalBuffer(1.0f0)
+        @test buf.window == 1.0f0
+        @test isempty(buf.events)
+    end
+
+    @testset "Discrete edge cases" begin
+        @testset "Empty spike trains" begin
+            q = SpikeTrain()
+            k = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            v = Float32[1 0; 0 1]
+            out = spike_attention_discrete(q, k, v)
+            @test out == Float32[0, 0]
+        end
+
+        @testset "Single neuron multiple coincidences" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0), SpikeEvent(1, 0.3f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            out = spike_attention_discrete(q, k, v)
+            @test out == Float32[2]
+        end
+
+        @testset "Non-unit spike values" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 2.0f0)])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, 3.0f0)])
+            v = Float32[1; 2;;]
+            out = spike_attention_discrete(q, k, v)
+            @test out == Float32[6]
+        end
+
+        @testset "Out of range source neuron ID throws" begin
+            q = SpikeTrain([SpikeEvent(5, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0)])
+            v = Float32[1 0; 0 1]
+            @test_throws ArgumentError spike_attention_discrete(q, k, v)
+        end
+
+        @testset "Out of range context neuron ID is ignored" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(5, 0.2f0, 1.0f0)])
+            v = Float32[1 0; 0 1]
+            out = spike_attention_discrete(q, k, v)
+            @test out == Float32[0, 0]
+        end
+
+        @testset "Larger readout matrix works" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0)])
+            v = Float32[1 0 0; 0 1 0; 0 0 1]
+            # readout has 3 rows but only 1 neuron → should work
+            out = spike_attention_discrete(q, k, v)
+            @test length(out) == 3
+        end
+
+        @testset "Dimension mismatch throws" begin
+            @test_throws DimensionMismatch TemporalFocus.Attention._apply_readout(
+                Float32[1, 2],
+                Float32[1 0 0; 0 1 0; 0 0 1],
+            )
+        end
+
+        @testset "Empty readout throws" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0)])
+            @test_throws ArgumentError spike_attention_discrete(q, k, zeros(Float32, 0, 1))
+        end
+
+        @testset "No coincidences" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(2, 0.2f0, 1.0f0)])
+            v = Float32[1 0; 0 1]
+            out = spike_attention_discrete(q, k, v)
+            @test out == Float32[0, 0]
+        end
+    end
+
+    @testset "Temporal edge cases" begin
+        @testset "tau zero throws" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            @test_throws ArgumentError spike_attention_temporal(q, k, v; τ = 0.0f0)
+        end
+
+        @testset "tau zero throws even without coincidences" begin
+            # τ is validated eagerly before the loop
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(2, 0.2f0, 1.0f0)])
+            v = Float32[1 0; 0 1]
+            @test_throws ArgumentError spike_attention_temporal(q, k, v; τ = 0.0f0)
+        end
+
+        @testset "Negative tau throws" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            @test_throws ArgumentError spike_attention_temporal(q, k, v; τ = -1.0f0)
+        end
+
+        @testset "Small tau decays faster" begin
+            q = SpikeTrain([SpikeEvent(1, 0.10f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(1, 0.30f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            out_small = spike_attention_temporal(q, k, v; τ = 0.05f0)
+            out_large = spike_attention_temporal(q, k, v; τ = 1.0f0)
+            @test abs(out_small[1]) < abs(out_large[1])
+        end
+
+        @testset "Empty context returns zero" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain()
+            v = Float32[1; 2;;]
+            out = spike_attention_temporal(q, k, v; τ = 1.0f0)
+            @test out == Float32[0]
+        end
+
+        @testset "No coincidences returns zero" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(2, 0.2f0, 1.0f0)])
+            v = Float32[1 0; 0 1]
+            out = spike_attention_temporal(q, k, v; τ = 1.0f0)
+            @test out == Float32[0, 0]
+        end
+    end
+
+    @testset "Continuous edge cases" begin
+        @testset "Empty buffers" begin
+            bq = TemporalBuffer(0.3f0, SpikeEvent[])
+            bk = TemporalBuffer(0.3f0, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            out = spike_attention_continuous(bq, bk, v; τ = 0.15f0)
+            @test out == Float32[0]
+        end
+
+        @testset "Events outside window" begin
+            bq = TemporalBuffer(0.1f0, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            bk = TemporalBuffer(0.1f0, [SpikeEvent(1, 10.0f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            out = spike_attention_continuous(bq, bk, v; τ = 0.15f0)
+            @test out == Float32[0]
+        end
+
+        @testset "Different window sizes" begin
+            bq = TemporalBuffer(0.5f0, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            bk = TemporalBuffer(0.1f0, [SpikeEvent(1, 0.55f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            out = spike_attention_continuous(bq, bk, v; τ = 0.15f0)
+            @test out[1] > 0
+        end
+
+        @testset "tau zero throws" begin
+            bq = TemporalBuffer(0.3f0, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            bk = TemporalBuffer(0.3f0, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            @test_throws ArgumentError spike_attention_continuous(bq, bk, v; τ = 0.0f0)
+        end
+
+        @testset "tau zero throws even without coincidences" begin
+            # Different neuron_ids → no coincidences, but τ is still validated eagerly
+            bq = TemporalBuffer(0.001f0, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            bk = TemporalBuffer(0.001f0, [SpikeEvent(2, 0.5f0, 1.0f0)])
+            v = Float32[1 0; 0 1]
+            @test_throws ArgumentError spike_attention_continuous(bq, bk, v; τ = 0.0f0)
+        end
+    end
+
+    @testset "Normalization edge cases" begin
+        @testset "All zeros" begin
+            l1 = Float32[0, 0, 0]
+            @test normalize_l1!(l1) == Float32[0, 0, 0]
+
+            maxn = Float32[0, 0, 0]
+            @test normalize_max!(maxn) == Float32[0, 0, 0]
+        end
+
+        @testset "Single element" begin
+            l1 = Float32[5]
+            @test normalize_l1!(l1) == Float32[1]
+
+            maxn = Float32[5]
+            @test normalize_max!(maxn) == Float32[1]
+        end
+
+        @testset "Already normalized" begin
+            l1 = Float32[0.5, 0.5]
+            @test normalize_l1!(l1) ≈ Float32[0.5, 0.5]
+
+            maxn = Float32[0.5, 1.0]
+            @test normalize_max!(maxn) ≈ Float32[0.5, 1.0]
+        end
+
+        @testset "Negative weights" begin
+            # sum is 0, normalize_l1! returns unchanged
+            l1 = Float32[-2, 3, -1]
+            result = normalize_l1!(l1)
+            @test result == Float32[-2, 3, -1]
+
+            # sum is positive, normalizes
+            l2 = Float32[-1, 3, 2]
+            normalize_l1!(l2)
+            @test sum(l2) ≈ 1.0f0
+        end
+
+        @testset "Idempotency" begin
+            l1 = Float32[2, 2, 4]
+            normalize_l1!(l1)
+            l1_copy = copy(l1)
+            normalize_l1!(l1)
+            @test l1 ≈ l1_copy
+
+            maxn = Float32[2, 6, 3]
+            normalize_max!(maxn)
+            maxn_copy = copy(maxn)
+            normalize_max!(maxn)
+            @test maxn ≈ maxn_copy
+        end
+    end
+
+    @testset "Temporal weight" begin
+        @testset "Symmetry" begin
+            τ = 0.5f0
+            @test temporal_weight(0.3f0, τ) ≈ temporal_weight(-0.3f0, τ)
+        end
+
+        @testset "Zero dt" begin
+            @test temporal_weight(0.0f0, 1.0f0) ≈ 1.0f0
+        end
+
+        @testset "Large dt decays" begin
+            @test temporal_weight(10.0f0, 1.0f0) < 0.001f0
+        end
+
+        @testset "Monotonic decay" begin
+            τ = 1.0f0
+            @test temporal_weight(0.1f0, τ) >
+                  temporal_weight(0.5f0, τ) >
+                  temporal_weight(1.0f0, τ)
+        end
+
+        @testset "Unchecked matches public when τ > 0" begin
+            @test TemporalFocus.Attention._temporal_weight_unchecked(0.3f0, 0.5f0) ≈
+                  temporal_weight(0.3f0, 0.5f0)
+        end
+
+        @testset "Public still validates τ" begin
+            @test_throws ArgumentError temporal_weight(0.1f0, 0.0f0)
+            @test_throws ArgumentError temporal_weight(0.1f0, -1.0f0)
+        end
+    end
+
+
+    @testset "Base.isempty" begin
+        @test isempty(SpikeTrain())
+        @test !isempty(SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)]))
+        @test isempty(TemporalBuffer(1.0f0))
+        @test !isempty(TemporalBuffer(1.0f0, [SpikeEvent(1, 0.1f0, 1.0f0)]))
+    end
+
+
+    @testset "Base.show" begin
+        e = SpikeEvent(2, 0.5f0, 1.25f0)
+        s = sprint(show, e)
+        @test occursin("neuron_id=2", s)
+        @test occursin("value=", s)
+        @test sprint(show, SpikeTrain()) == "SpikeTrain(0 events)"
+        @test sprint(show, SpikeTrain([SpikeEvent(1, 0.1f0)])) == "SpikeTrain(1 event)"
+        @test sprint(show, SpikeTrain([SpikeEvent(1, 0.1f0), SpikeEvent(2, 0.2f0)])) ==
+              "SpikeTrain(2 events)"
+        @test occursin("TemporalBuffer(window=", sprint(show, TemporalBuffer(0.25f0)))
+        @test occursin("0 events)", sprint(show, TemporalBuffer(0.25f0)))
+        @test occursin(
+            "1 event)",
+            sprint(show, TemporalBuffer(0.25f0, [SpikeEvent(1, 0.1f0)])),
+        )
+    end
+
+
+    @testset "Base.==" begin
+        @testset "SpikeEvent" begin
+            a = SpikeEvent(1, 0.5f0, 1.0f0)
+            @test a == SpikeEvent(1, 0.5f0, 1.0f0)
+            @test a != SpikeEvent(2, 0.5f0, 1.0f0)
+            @test a != SpikeEvent(1, 0.6f0, 1.0f0)
+            @test a != SpikeEvent(1, 0.5f0, 2.0f0)
+            # ±0.0f0: Float32 `==` collapses signs; `isequal`/`Set` keep Julia float rules
+            zpos = SpikeEvent(1, 0.0f0, 0.0f0)
+            zneg = SpikeEvent(1, -0.0f0, -0.0f0)
+            @test zpos == zneg
+            @test !isequal(zpos, zneg)
+            @test length(Set([zpos, zneg])) == 2
+            # NaN: `==` is false; `isequal`/`Set` treat matching NaN spikes as one key
+            nan1 = SpikeEvent(1, NaN32, 1.0f0)
+            nan2 = SpikeEvent(1, NaN32, 1.0f0)
+            @test nan1 != nan2
+            @test isequal(nan1, nan2)
+            @test hash(nan1) == hash(nan2)
+            @test length(Set([nan1, nan2])) == 1
+        end
+        @testset "SpikeTrain" begin
+            e1 = SpikeEvent(1, 0.1f0, 1.0f0)
+            e2 = SpikeEvent(2, 0.2f0, 1.0f0)
+            @test SpikeTrain() == SpikeTrain(SpikeEvent[])
+            @test SpikeTrain([e1, e2]) == SpikeTrain([e1, e2])
+            @test SpikeTrain([e1, e2]) != SpikeTrain([e2, e1])
+            @test SpikeTrain([e1]) != SpikeTrain()
+            @test hash(SpikeTrain([e1, e2])) == hash(SpikeTrain([e1, e2]))
+            @test length(Set([SpikeTrain([e1]), SpikeTrain([e1])])) == 1
+            tnan1 = SpikeTrain([SpikeEvent(1, NaN32, 1.0f0)])
+            tnan2 = SpikeTrain([SpikeEvent(1, NaN32, 1.0f0)])
+            @test tnan1 != tnan2
+            @test isequal(tnan1, tnan2)
+            @test length(Set([tnan1, tnan2])) == 1
+            # Mutable-key contract: content hash changes if events mutate while
+            # the object is used as a Dict/Set key (do not rely on one specific
+            # corrupted-lookup outcome — that is hash-table implementation-defined).
+            key = SpikeTrain([e1])
+            h_before = hash(key)
+            push!(key.events, e2)
+            @test hash(key) != h_before
+        end
+        @testset "TemporalBuffer" begin
+            e = SpikeEvent(1, 0.1f0, 1.0f0)
+            @test TemporalBuffer(1.0f0) == TemporalBuffer(1.0f0, SpikeEvent[])
+            @test TemporalBuffer(1.0f0, [e]) == TemporalBuffer(1.0f0, [e])
+            @test TemporalBuffer(1.0f0, [e]) != TemporalBuffer(2.0f0, [e])
+            @test TemporalBuffer(1.0f0, [e]) != TemporalBuffer(1.0f0)
+            @test hash(TemporalBuffer(1.0f0, [e])) == hash(TemporalBuffer(1.0f0, [e]))
+            bpos = TemporalBuffer(0.0f0)
+            bneg = TemporalBuffer(-0.0f0)
+            @test bpos == bneg
+            @test !isequal(bpos, bneg)
+            @test length(Set([bpos, bneg])) == 2
+            bnan1 = TemporalBuffer(NaN32)
+            bnan2 = TemporalBuffer(NaN32)
+            @test bnan1 != bnan2
+            @test isequal(bnan1, bnan2)
+            @test length(Set([bnan1, bnan2])) == 1
+            # Mutable-key contract: prune! changes content hash (same caveat as SpikeTrain)
+            buf = TemporalBuffer(
+                0.5f0,
+                [SpikeEvent(1, 0.0f0, 1.0f0), SpikeEvent(1, 1.0f0, 1.0f0)],
+            )
+            h_before = hash(buf)
+            prune!(buf, 1.0f0)
+            @test hash(buf) != h_before
+        end
+    end
+
+    @testset "Property invariants" begin
+        rng = MersenneTwister(246)
+        N = 100
+        atol = 1.0f-5
+
+        @testset "normalize_l1! properties" begin
+            for _ = 1:N
+                n = rand(rng, 1:16)
+                # Mix of positive, negative, and zero entries
+                w = Float32.(randn(rng, n) .* 3)
+                if rand(rng) < 0.15
+                    fill!(w, 0.0f0)
+                end
+                original = copy(w)
+                total = sum(w)
+                normalize_l1!(w)
+                if total > 0
+                    # Near-cancellation of mixed signs can lose Float32 precision;
+                    # skip tight sum≈1 when |total| is tiny relative to the vector scale.
+                    scale = max(maximum(abs, original), eps(Float32))
+                    if abs(total) < 1.0f-3 * scale
+                        @test all(isfinite, w)
+                    else
+                        @test sum(w) ≈ 1.0f0 atol = atol
+                        # Proportionality preserved for non-zero total
+                        @test all(
+                            isapprox.(w .* total, original; atol = atol, rtol = 1.0f-4),
+                        )
+                    end
+                else
+                    @test w == original
+                end
+            end
+        end
+
+        @testset "normalize_max! properties" begin
+            for _ = 1:N
+                n = rand(rng, 1:16)
+                w = Float32.(randn(rng, n) .* 3)
+                # Independent branches: ~15% zeros, ~15% all non-positive (disjoint).
+                r = rand(rng)
+                if r < 0.15
+                    fill!(w, 0.0f0)
+                elseif r < 0.30
+                    # All non-positive so peak <= 0
+                    w .= -abs.(w)
+                end
+                original = copy(w)
+                peak = maximum(w)
+                normalize_max!(w)
+                if peak > 0
+                    @test maximum(w) ≈ 1.0f0 atol = atol
+                    @test all(isapprox.(w .* peak, original; atol = atol, rtol = 1.0f-4))
+                else
+                    @test w == original
+                end
+            end
+        end
+
+        @testset "temporal_weight properties" begin
+            for _ = 1:N
+                τ = Float32(rand(rng) * 4 + 1.0f-3)  # positive
+                dt = Float32(randn(rng) * 5)
+
+                # Symmetry in dt
+                @test temporal_weight(dt, τ) ≈ temporal_weight(-dt, τ) atol = atol
+
+                # Closed-form formula
+                expected = exp(-abs(dt) / τ)
+                @test temporal_weight(dt, τ) ≈ expected atol = atol
+
+                # Zero lag is unity
+                @test temporal_weight(0.0f0, τ) ≈ 1.0f0 atol = atol
+            end
+
+            # τ <= 0 throws
+            for _ = 1:N
+                dt = Float32(randn(rng))
+                bad_τ = rand(rng) < 0.5 ? 0.0f0 : -Float32(rand(rng) * 5 + eps(Float32))
+                @test_throws ArgumentError temporal_weight(dt, bad_τ)
+            end
+        end
+
+        @testset "prune! properties" begin
+            for _ = 1:N
+                window = Float32(rand(rng) * 2 + 0.05f0)
+                current_time = Float32(rand(rng) * 10)
+                n_events = rand(rng, 0:24)
+                events = SpikeEvent[
+                    SpikeEvent(
+                        rand(rng, 1:8),
+                        Float32(current_time + (rand(rng) * 4 - 2) * window),
+                        Float32(rand(rng) * 2 - 0.5),
+                    ) for _ = 1:n_events
+                ]
+                buffer = TemporalBuffer(window, events)
+                before_len = length(buffer.events)
+
+                prune!(buffer, current_time)
+
+                # Survivors are within the window
+                for event in buffer.events
+                    @test (current_time - event.t) <= window + atol
+                end
+
+                # Length is nonincreasing
+                @test length(buffer.events) <= before_len
+
+                # Every survivor was in the original set (identity by fields)
+                survivor_set = Set((e.neuron_id, e.t, e.value) for e in buffer.events)
+                original_set = Set((e.neuron_id, e.t, e.value) for e in events)
+                @test survivor_set ⊆ original_set
+
+                # Dropped events are outside the window
+                for e in events
+                    key = (e.neuron_id, e.t, e.value)
+                    if key ∉ survivor_set
+                        @test (current_time - e.t) > window
+                    end
+                end
+
+                # Idempotent: second prune leaves events unchanged
+                after_first = copy(buffer.events)
+                prune!(buffer, current_time)
+                @test buffer.events == after_first
+            end
+        end
+        @testset "hash matches ==" begin
+            e1 = SpikeEvent(1, 0.1f0, 1.0f0)
+            e2 = SpikeEvent(2, 0.2f0, 1.0f0)
+            a = SpikeTrain([e1, e2])
+            b = SpikeTrain([e1, e2])
+            @test hash(a) == hash(b)
+            @test length(Set([a, b])) == 1
+            @test hash(SpikeEvent(1, 0.5f0, 1.0f0)) == hash(SpikeEvent(1, 0.5f0, 1.0f0))
+            @test hash(TemporalBuffer(1.0f0, [e1])) == hash(TemporalBuffer(1.0f0, [e1]))
+        end
+    end
+
+end
