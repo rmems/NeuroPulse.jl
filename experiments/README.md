@@ -220,3 +220,43 @@ while `config.toml` records the entire grid, effective router configurations,
 and missing/no-evidence/scoring policies. Provenance hashes cover these inputs,
 source files, and the resolved environment. These synthetic results are not a
 claim about deployed Spikenaut, learning quality, or runtime efficiency.
+
+## Offline Spikenaut replay
+
+```bash
+julia +1.12.7 --project=experiments experiments/spikenaut_replay.jl --out-dir experiments/results
+# Both inputs are mandatory when replacing the built-in synthetic fixture:
+julia +1.12.7 --project=experiments experiments/spikenaut_replay.jl \
+  --trace /path/to/trace.jsonl --manifest /path/to/manifest.json \
+  --config experiments/configs/spikenaut_replay.toml --out-dir /path/to/results
+julia +1.12.7 --project=experiments experiments/test/spikenaut_artifacts.jl
+```
+
+The committed [fixture](fixtures/spikenaut/README.md) is synthetic data from the
+pinned Spikenaut frozen replay producer, with the original telemetry and producer
+manifest preserved. External pairs default to `unverified/unspecified`; optional
+`--data-kind synthetic` or `--data-kind measured-user-declared` is a caller label,
+not independent verification. The default fixture is always labeled synthetic.
+The JSON parser dependency belongs only to this isolated experiment environment.
+
+The fixed `[1, 2, 4, 8]` tick window grid compares uniform, firing-rate, discrete
+attention, temporal attention and temporal routing allocations. One neuron maps
+to one region. Current spikes query strictly earlier same-session context; there
+are no same-event self matches. All time is in replay ticks, never seconds.
+Both schemas, the trace digest, shapes, finite values, neuron IDs, step/session
+ordering and manifest aggregates are checked before replay.
+
+Any missing sensor excludes comparisons whose closed local window includes its
+row. The adapter preserves all global steps, discards that row's arrivals and
+resets its router/history; it resumes routing only when the local window is
+clear. This does **not** undo upstream encode-zero LIF state or establish upstream
+recovery. Session boundaries independently reset the analysis. Observed silence,
+missing rows, local exclusions and method-specific no-evidence counts stay
+separate in `coverage.csv`, `traces.csv` and `metrics.csv`.
+
+Artifacts report concentration (HHI), entropy in bits, consecutive eligible-tick
+turnover and eligible coverage. They do not measure prediction accuracy, learning
+benefit, supervisor correctness or runtime efficiency. Window comparisons are
+descriptive and can have different eligibility sets. The figure, exact input
+snapshots, policies, input/config/source hashes and resolved environment accompany
+the report. This CLI is deliberately separate from the six-study `run_all.jl`.

@@ -1,0 +1,97 @@
+{
+  "encoder": {
+    "columns": [
+      "mem_util_pct",
+      "power_w",
+      "gpu_temp_c",
+      "sm_clock_mhz",
+      "mem_clock_mhz"
+    ],
+    "frozen_minmax": {
+      "gpu_temp_c": [
+        0.0,
+        69.0
+      ],
+      "mem_clock_mhz": [
+        405.0,
+        14801.0
+      ],
+      "mem_util_pct": [
+        0.0,
+        75.0
+      ],
+      "power_w": [
+        8.527000427246094,
+        302.8450012207031
+      ],
+      "sm_clock_mhz": [
+        180.0,
+        2910.0
+      ]
+    },
+    "frozen_minmax_lineage": "74acdd0f",
+    "kind": "analog-current, frozen minmax (not spikes)",
+    "missing_counts": {
+      "gpu_temp_c": 0,
+      "mem_clock_mhz": 1,
+      "mem_util_pct": 0,
+      "power_w": 0,
+      "sm_clock_mhz": 1
+    },
+    "missing_policy": "encode-zero",
+    "staleness": "undetectable on v3 state_telemetry (ts_utc is null); rows replay in file order"
+  },
+  "input": {
+    "n_steps": 10,
+    "path": "tools/fixtures/replay_frozen/telemetry.jsonl",
+    "sessions": [
+      "gpu-000001",
+      "gpu-000002"
+    ],
+    "sha256": "sha256:80954bab12f8f972c3234263633f778476e75c32e1929fcdaacd3f5cf4cb3492",
+    "split": "all",
+    "steps_per_session": {
+      "gpu-000001": 5,
+      "gpu-000002": 5
+    }
+  },
+  "model": {
+    "bank_manifest": "dataset/merged_v2/model_bank.json",
+    "checkpoint": "snn_model.json",
+    "checkpoint_digest": "sha256:cf3b7a47c5eb62d93b28480804e2ca82923db5bece1285bcbeba723437bfaf89",
+    "feature_map_id": "spikenaut.feature-map.live-exp-025.v1",
+    "id": "merged_v2",
+    "numeric_format": "q8.8-fixed-point",
+    "output_contract_id": "spikenaut.output-contract.supervisor-v3.rm-1150",
+    "training_dataset_digest": "sha256:26d7d7442605a32b11330f53f55e621750f31e775465209991f73f94a6c72c09"
+  },
+  "output": {
+    "contract": "tools/decision_core.py replay_output_row",
+    "diagnostic_only": true,
+    "note": "argmax over comfort/temp/power is a diagnostic, not a validated ALLOW/WARN/THROTTLE/PAUSE/YIELD_GPU policy",
+    "vocabulary": [
+      "comfort",
+      "temp",
+      "power"
+    ]
+  },
+  "results": {
+    "sessions": 2,
+    "spikes_fired": 32
+  },
+  "schema_version": "spikenaut.replay-manifest.v1",
+  "source": {
+    "branch": "main",
+    "commit": "72e624eb54fa9f688d8d2e9d0fe86ebf467d6ba3",
+    "dirty": null
+  },
+  "stepper": {
+    "i_drive": 0.05,
+    "k": 4,
+    "n_neurons": 16,
+    "name": "tools/hamming_lif.py keep_lif_step (v = decay*v + W@stim; decay is KEEP)",
+    "session_reset": "LifBank.reset() at each episode_id boundary"
+  },
+  "trace_schema": "spikenaut.replay-trace.v1",
+  "trace_sha256": "sha256:9f7b7144165350514a3351e607178e33b44542437cf4171a8b2bbc678a028bb4"
+}

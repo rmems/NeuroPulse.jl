@@ -91,3 +91,4 @@ end
 end
 
 include("routing_selection.jl")
+include("spikenaut_replay.jl")
