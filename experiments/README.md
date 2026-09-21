@@ -24,6 +24,8 @@ isolated environment.
 
 ## Running
 
+From the repository root:
+
 ```bash
 julia +1.12.7 --project=experiments experiments/run_all.jl
 julia +1.12.7 --project=experiments experiments/run_all.jl --list
@@ -37,6 +39,9 @@ the runner fails if one is missing. Unknown `*.jl` files directly under
 `experiments/` are discovered afterwards in sorted order. Every entrypoint
 checks that `Base.pkgdir(TemporalFocus)` resolves to this checkout and that the
 canonical UUID is loaded.
+
+The harness does not lock a shared results directory. Give concurrent runs
+distinct `--out-dir` roots so each process owns the directory it writes.
 
 ## Artifact contract
 
@@ -54,8 +59,8 @@ Every experiment writes to `experiments/results/<slug>/`:
 provenance file records its UTC generation time and SHA-256 digests for the
 required artifacts, executing experiment script, declared data inputs, every
 Julia source file under root `src/` and `experiments/` (excluding generated
-results), and the resolved environment. Generated time is therefore separate
-from deterministic `config.toml` and `metrics.csv`.
+results), declared extra artifacts, and the resolved environment. Generated
+time is therefore separate from deterministic `config.toml` and `metrics.csv`.
 
 Every experiment must:
 
@@ -89,7 +94,7 @@ using .ExperimentUtils
 | `write_metrics(slug, rows::Vector{<:NamedTuple})` | path of the written `metrics.csv` |
 | `write_summary(slug, md::AbstractString)` | path of the written `summary.md` |
 | `prepare_experiment!(TemporalFocus, args)` | validates the checkout and consumes `--out-dir` |
-| `finalize_run(slug; input_paths=[])` | validates and fingerprints the completed run |
+| `finalize_run(slug; input_paths=[], extra_artifacts=[])` | validates and fingerprints the completed run, including named optional outputs |
 
 Notes:
 
