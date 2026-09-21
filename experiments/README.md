@@ -236,7 +236,8 @@ The committed [fixture](fixtures/spikenaut/README.md) is synthetic data from the
 pinned Spikenaut frozen replay producer, with the original telemetry and producer
 manifest preserved. External pairs default to `unverified/unspecified`; optional
 `--data-kind synthetic` or `--data-kind measured-user-declared` is a caller label,
-not independent verification. The default fixture is always labeled synthetic.
+not independent verification. The known fixture trace is always labeled synthetic, including explicit paths
+and byte-identical renamed copies recognized by SHA-256.
 The JSON parser dependency belongs only to this isolated experiment environment.
 
 The fixed `[1, 2, 4, 8]` tick window grid compares uniform, firing-rate, discrete

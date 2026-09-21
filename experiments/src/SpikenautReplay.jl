@@ -5,6 +5,7 @@ using JSON, SHA, TOML, Statistics, TemporalFocus
 export ReplayRow, read_replay, replay_window, run_replay, parse_options, validate_config
 const METHODS = ("uniform", "firing_rate", "discrete_attention", "temporal_attention", "temporal_router")
 const FIXTURE = normpath(joinpath(@__DIR__,"..","fixtures","spikenaut"))
+const SYNTHETIC_TRACE_SHA256 = "9f7b7144165350514a3351e607178e33b44542437cf4171a8b2bbc678a028bb4"
 const DEFAULT_CONFIG = normpath(joinpath(@__DIR__,"..","configs","spikenaut_replay.toml"))
 struct ReplayRow
     step::Int
@@ -244,11 +245,14 @@ function parse_options(args)
     end
     paired = haskey(opts,"--trace")
     require(paired==haskey(opts,"--manifest"),"--trace and --manifest must be supplied together")
-    kind = get(opts,"--data-kind",paired ? "unverified/unspecified" : "synthetic")
-    require(paired || kind=="synthetic","committed fixture must be labeled synthetic")
+    trace = get(opts,"--trace",joinpath(FIXTURE,"trace.jsonl"))
+    # Identify known synthetic content even when passed explicitly or renamed.
+    known_fixture = !paired || (isfile(trace) && bytes2hex(sha256(read(trace)))==SYNTHETIC_TRACE_SHA256)
+    kind = get(opts,"--data-kind",known_fixture ? "synthetic" : "unverified/unspecified")
+    require(!known_fixture || kind=="synthetic","known synthetic fixture must be labeled synthetic")
     require(kind in ("synthetic","unverified/unspecified","measured-user-declared"),"unsupported data-kind label")
-    (trace=get(opts,"--trace",joinpath(FIXTURE,"trace.jsonl")),
+    (trace=trace,
      manifest=get(opts,"--manifest",joinpath(FIXTURE,"manifest.json")),
-     config=get(opts,"--config",DEFAULT_CONFIG),data_kind=kind,builtin_fixture=!paired)
+     config=get(opts,"--config",DEFAULT_CONFIG),data_kind=kind,builtin_fixture=known_fixture)
 end
 end

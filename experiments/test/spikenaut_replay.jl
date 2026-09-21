@@ -100,6 +100,17 @@ if isdefined(@__MODULE__, :SpikenautReplay)
         @test_throws ArgumentError parse_options(["--bogus","x"])
         @test parse_options(String[]).data_kind == "synthetic"
         @test_throws ArgumentError parse_options(["--data-kind","measured-user-declared"])
+        explicit = ["--trace",joinpath(fixture,"trace.jsonl"),"--manifest",joinpath(fixture,"manifest.json")]
+        @test parse_options(explicit).data_kind == "synthetic"
+        @test_throws ArgumentError parse_options(vcat(explicit,["--data-kind","measured-user-declared"]))
+        mktempdir() do dir
+            t,m=joinpath(dir,"renamed-trace.jsonl"),joinpath(dir,"renamed-manifest.json")
+            cp(joinpath(fixture,"trace.jsonl"),t); cp(joinpath(fixture,"manifest.json"),m)
+            copied = ["--trace",t,"--manifest",m]
+            @test parse_options(copied).data_kind == "synthetic"
+            @test_throws ArgumentError parse_options(vcat(copied,["--data-kind","measured-user-declared"]))
+        end
+
         @test parse_options(["--trace","t","--manifest","m"]).data_kind == "unverified/unspecified"
         @test parse_options(["--trace","t","--manifest","m","--data-kind","measured-user-declared"]).data_kind == "measured-user-declared"
     end
