@@ -52,8 +52,9 @@ Every experiment writes to `experiments/results/<slug>/`:
 `finalize_run` also writes `provenance.toml` and copies the resolved
 `experiments/Project.toml` and `experiments/Manifest.toml` into the run. The
 provenance file records its UTC generation time and SHA-256 digests for the
-required artifacts, executing experiment script, declared data inputs, package
-source files, and resolved environment. Generated time is therefore separate
+required artifacts, executing experiment script, declared data inputs, every
+Julia source file under root `src/` and `experiments/` (excluding generated
+results), and the resolved environment. Generated time is therefore separate
 from deterministic `config.toml` and `metrics.csv`.
 
 Every experiment must:

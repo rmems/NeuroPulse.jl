@@ -3,6 +3,35 @@ using TemporalFocus
 using Test
 using TOML
 
+@testset "path-preserving experiment source digests" begin
+    mktempdir() do checkout
+        mkpath(joinpath(checkout, "src"))
+        mkpath(joinpath(checkout, "experiments", "src"))
+        mkpath(joinpath(checkout, "experiments", "analysis"))
+        mkpath(joinpath(checkout, "experiments", "results", "ignored"))
+        write(joinpath(checkout, "src", "core.jl"), "core() = 1\n")
+        helper = joinpath(checkout, "experiments", "src", "Helper.jl")
+        write(helper, "helper() = 1\n")
+        write(joinpath(checkout, "experiments", "analysis", "score.jl"), "score() = 1\n")
+        write(
+            joinpath(checkout, "experiments", "results", "ignored", "generated.jl"),
+            "generated() = 1\n",
+        )
+
+        before = ExperimentUtils._source_hashes(checkout)
+        @test haskey(before, "src/core.jl")
+        @test haskey(before, "experiments/src/Helper.jl")
+        @test haskey(before, "experiments/analysis/score.jl")
+        @test !haskey(before, "experiments/results/ignored/generated.jl")
+
+        write(helper, "helper() = 2\n")
+        after = ExperimentUtils._source_hashes(checkout)
+        @test after["experiments/src/Helper.jl"] != before["experiments/src/Helper.jl"]
+        @test after["src/core.jl"] == before["src/core.jl"]
+        @test after["experiments/analysis/score.jl"] == before["experiments/analysis/score.jl"]
+    end
+end
+
 @testset "experiment provenance" begin
     @test validate_checkout!(TemporalFocus) == realpath(joinpath(@__DIR__, "..", ".."))
 
@@ -42,6 +71,11 @@ using TOML
                   "60b3b24639da18b1e6b21eb61ce584eb9f82c96770af3cb6c6c44515be749955"
             @test haskey(provenance["inputs"], "probe.jl")
             @test haskey(provenance, "package_sources")
+            @test haskey(
+                provenance["package_sources"],
+                "experiments/src/ExperimentUtils.jl",
+            )
+            @test haskey(provenance["package_sources"], "experiments/src/HarnessCore.jl")
             @test haskey(provenance["artifacts"], "metrics.csv")
 
             config = TOML.parsefile(config_path)

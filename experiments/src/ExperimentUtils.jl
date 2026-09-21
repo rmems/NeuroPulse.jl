@@ -235,13 +235,26 @@ _sha256_file(path::AbstractString) = open(path, "r") do io
     bytes2hex(SHA.sha256(io))
 end
 
-function _source_files()
-    source_root = joinpath(repo_root(), "src")
+function _source_files(checkout_root::AbstractString = repo_root())
     files = String[]
-    for (root, _, names) in walkdir(source_root)
-        append!(files, joinpath(root, name) for name in names if endswith(name, ".jl"))
+    package_root = joinpath(checkout_root, "src")
+    experiment_root = joinpath(checkout_root, "experiments")
+    results_root = normpath(joinpath(experiment_root, "results"))
+    for source_root in (package_root, experiment_root)
+        isdir(source_root) || continue
+        for (root, dirs, names) in walkdir(source_root)
+            filter!(dir -> normpath(joinpath(root, dir)) != results_root, dirs)
+            append!(files, joinpath(root, name) for name in names if endswith(name, ".jl"))
+        end
     end
     return sort!(files)
+end
+
+function _source_hashes(checkout_root::AbstractString = repo_root())
+    root = realpath(checkout_root)
+    return Dict(
+        relpath(path, root) => _sha256_file(path) for path in _source_files(root)
+    )
 end
 
 function _labeled_hashes(paths)
@@ -264,9 +277,10 @@ end
 Validate the four required artifacts, snapshot the exact resolved experiment
 `Project.toml` and `Manifest.toml`, and write `provenance.toml`. Hashes cover the
 artifacts, the executing script, any data-dependent inputs supplied by the
-experiment, every package source file, and the resolved environment. The UTC
-generation time lives only in `provenance.toml`; deterministic metrics and
-configuration remain timestamp-free.
+experiment, every Julia source file under `src/` and `experiments/` (excluding
+generated results), and the resolved environment. The UTC generation time
+lives only in `provenance.toml`; deterministic metrics and configuration remain
+timestamp-free.
 """
 function finalize_run(
     slug::AbstractString;
@@ -298,10 +312,7 @@ function finalize_run(
     append!(script_inputs, input_paths)
     inputs = _labeled_hashes(script_inputs)
 
-    package_sources = Dict{String,Any}()
-    for path in _source_files()
-        package_sources[relpath(path, repo_root())] = _sha256_file(path)
-    end
+    package_sources = _source_hashes()
 
     commit = _git_output(`rev-parse HEAD`)
     provenance = Dict{String,Any}(
