@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
 # Ported from rmems/TemporalFocus.jl @ eb38c70 (ADR 0002).
-# Experiment-harness tests stay in TemporalFocus.jl with experiments/ provenance.
+# Experiment-harness tests stay in NeuroPulse.jl with experiments/ provenance.
 
-using TemporalFocus
+using NeuroPulse
 using Test
 using Random
 
@@ -173,7 +173,7 @@ using Random
         end
 
         @testset "Dimension mismatch throws" begin
-            @test_throws DimensionMismatch TemporalFocus.Attention._apply_readout(
+            @test_throws DimensionMismatch NeuroPulse.Attention._apply_readout(
                 Float32[1, 2],
                 Float32[1 0 0; 0 1 0; 0 0 1],
             )
@@ -358,7 +358,7 @@ using Random
         end
 
         @testset "Unchecked matches public when τ > 0" begin
-            @test TemporalFocus.Attention._temporal_weight_unchecked(0.3f0, 0.5f0) ≈
+            @test NeuroPulse.Attention._temporal_weight_unchecked(0.3f0, 0.5f0) ≈
                   temporal_weight(0.3f0, 0.5f0)
         end
 

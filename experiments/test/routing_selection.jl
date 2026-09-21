@@ -1,4 +1,4 @@
-using Test, TemporalFocus, TOML
+using Test, NeuroPulse, TOML
 const module_path = joinpath(@__DIR__, "..", "src", "RoutingSelection.jl")
 @testset "routing study is available" begin
     @test isfile(module_path)

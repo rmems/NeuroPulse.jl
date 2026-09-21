@@ -7,9 +7,9 @@ using Test
 
     checkout = realpath(joinpath(@__DIR__, ".."))
     @test HarnessCore.repo_root() == checkout
-    @test HarnessCore.validate_checkout!(TemporalFocus) == checkout
+    @test HarnessCore.validate_checkout!(NeuroPulse) == checkout
 
-    previous = get(ENV, "TEMPORALFOCUS_RESULTS_DIR", nothing)
+    previous = get(ENV, "NEUROPULSE_RESULTS_DIR", nothing)
     try
         mktempdir() do tmp
             output = joinpath(tmp, "custom-results")
@@ -21,9 +21,9 @@ using Test
         end
     finally
         if previous === nothing
-            pop!(ENV, "TEMPORALFOCUS_RESULTS_DIR", nothing)
+            pop!(ENV, "NEUROPULSE_RESULTS_DIR", nothing)
         else
-            ENV["TEMPORALFOCUS_RESULTS_DIR"] = previous
+            ENV["NEUROPULSE_RESULTS_DIR"] = previous
         end
     end
 end

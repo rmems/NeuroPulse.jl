@@ -48,7 +48,7 @@ NeuroPulse owns spike-driven relevance routing **and** coincidence attention:
 - `routing_diagnostics` for lightweight inspection/logging
 - `adapt_leak!` as a small optional helper for stress-aware leak adaptation
 - `SpikeEvent` / `SpikeTrain` / `TemporalBuffer` and `spike_attention_*` kernels
-  (`TemporalFocus.Attention`, imported from TemporalFocus.jl — ADR 0002)
+  (`NeuroPulse.Attention`, imported from TemporalFocus.jl — ADR 0002)
 
 Routing still consumes compact rates and readouts. Attention is a separate public
 surface for spike events and trains. See [`docs/interop.md`](docs/interop.md) and
@@ -76,14 +76,13 @@ using Pkg
 Pkg.add(url="https://github.com/rmems/NeuroPulse.jl")
 ```
 
-The public repository identity is **NeuroPulse.jl**. The loadable Julia module name in
-`Project.toml` is still `TemporalFocus` until a follow-up rename; use `using TemporalFocus`
-after the add.
+The repository, package, and loadable module are all named **NeuroPulse**. The package
+keeps its canonical UUID `b7e4c3f2-1d2e-4a5b-8c9d-0e1f2a3b4c5e`.
 
 ## Quick start
 
 ```julia
-using TemporalFocus  # loadable module name until Project.toml is renamed
+using NeuroPulse
 
 router = RegionRouter(
     n_regions = 4,
@@ -234,7 +233,7 @@ Source markdown lives in `docs/` (Documenter pages under `docs/src/`):
 - `docs/src/overview.md` — architecture, scope, and intended usage
 - `docs/src/api.md` — exported types/functions and behavior notes
 - `docs/src/interop.md` — frozen data-shape / interop contract (rates, readouts, routing weights)
-- `docs/src/package-identity.md` — ADR 0002 survivor UUID and dual-`TemporalFocus` rule
+- `docs/src/package-identity.md` — canonical UUID, rename guidance, and ADR 0002 provenance
 - `docs/src/roadmap.md` — gaps, next cleanup targets, and candid project status
 
 (Root copies under `docs/*.md` may exist for GitHub browsing; Documenter builds from `docs/src/`.)
@@ -248,11 +247,14 @@ julia --project=docs docs/make.jl
 
 ## Historical note
 
-This repository is **NeuroPulse.jl** (`rmems/NeuroPulse.jl`). The Julia `Project.toml`
-`name` and loadable module may still say `TemporalFocus` temporarily; that is a package-metadata
-lag, not the public identity. The sibling `TemporalFocus.jl` attention surface is imported
-here (ADR 0002). Do not add that repository's retired UUID `7f3c9f2a-…` to an environment
-that already depends on this package.
+This repository is **NeuroPulse.jl** (`rmems/NeuroPulse.jl`). Code written against the
+pre-rename package must change `using TemporalFocus` to `using NeuroPulse`; the old package
+import is not provided as a compatibility alias. The routing aliases such as
+`NeroOrchestrator` and `update_relevance!` remain available under `NeuroPulse`.
+
+The sibling `rmems/TemporalFocus.jl` repository is the historical source of the imported
+attention surface (ADR 0002). Do not add that repository's retired UUID `7f3c9f2a-…` to an
+environment that already depends on this package.
 
 Earlier names (`SpikenautAttention` / `SpikenautNero`) are historical only. NERO remains in
 the current public API via `NeroOrchestrator` and `nero_diagnostics`.

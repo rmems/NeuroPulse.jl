@@ -16,7 +16,7 @@ julia +1.12.7 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.in
 ```
 
 `Pkg.develop(path=".")` points the experiment environment at the working copy of
-TemporalFocus, so experiments always run against the checked-out source.
+NeuroPulse, so experiments always run against the checked-out source.
 
 The research harness is run and validated with Julia 1.12 only. Its CairoMakie
 compatibility range (0.12–0.15) lets `Pkg` resolve a compatible renderer in the
@@ -37,7 +37,7 @@ julia +1.12.7 --project=experiments experiments/jitter_test.jl --out-dir /tmp/ji
 order. All six characterization scripts and `harness_smoke.jl` are required;
 the runner fails if one is missing. Unknown `*.jl` files directly under
 `experiments/` are discovered afterwards in sorted order. Every entrypoint
-checks that `Base.pkgdir(TemporalFocus)` resolves to this checkout and that the
+checks that `Base.pkgdir(NeuroPulse)` resolves to this checkout and that the
 canonical UUID is loaded.
 
 The harness does not lock a shared results directory. Give concurrent runs
@@ -97,7 +97,7 @@ using .ExperimentUtils
 | `write_config(slug, cfg::AbstractDict)` | path of the written `config.toml` |
 | `write_metrics(slug, rows::Vector{<:NamedTuple})` | path of the written `metrics.csv` |
 | `write_summary(slug, md::AbstractString)` | path of the written `summary.md` |
-| `prepare_experiment!(TemporalFocus, args)` | validates the checkout and consumes `--out-dir` |
+| `prepare_experiment!(NeuroPulse, args)` | validates the checkout and consumes `--out-dir` |
 | `finalize_run(slug; input_paths=[], extra_artifacts=[])` | validates and fingerprints the completed run, including named optional outputs |
 
 Notes:
@@ -111,7 +111,7 @@ Notes:
 - `write_config` appends deterministic checkout provenance (git commit, dirty
   flag, Julia version). The non-deterministic generation time is isolated in
   `provenance.toml`.
-- Setting `TEMPORALFOCUS_RESULTS_DIR` redirects the results root (a relative
+- Setting `NEUROPULSE_RESULTS_DIR` redirects the results root (a relative
   value is resolved against the working directory). Leave it unset for normal
   runs; the package test suite uses it to exercise the harness in a temporary
   directory.
@@ -126,13 +126,13 @@ file name to `ORDERED_EXPERIMENTS` in `run_all.jl`:
 using CairoMakie
 using ExperimentUtils
 using Random
-using TemporalFocus
+using NeuroPulse
 
 const SLUG = "my-experiment"
 const RNG_SEED = 42
 
 function main()
-    isempty(prepare_experiment!(TemporalFocus)) || error("unexpected arguments")
+    isempty(prepare_experiment!(NeuroPulse)) || error("unexpected arguments")
     rng = MersenneTwister(RNG_SEED)
     # ... build a spike scene, measure something ...
 
@@ -174,11 +174,11 @@ regenerable from the script that produced them.
 
 ## Boundary
 
-Experiments stay pure spike-native characterizations of TemporalFocus: spike
+Experiments stay pure spike-native characterizations of NeuroPulse: spike
 trains, temporal buffers, attention kernels, normalization, readouts. No market
 or exchange data, no token/embedding/LLM integration, no plasticity rules, no
 runtime orchestration — those belong in downstream workspaces that consume
-TemporalFocus through a narrow interface.
+NeuroPulse through a narrow interface.
 
 ## Port provenance
 
@@ -188,6 +188,11 @@ The harness and six characterization scenes were ported from
 decision rules, and contrary findings were retained. See `PORTED_FROM.toml` for
 the file manifest. The source and this port are available under the same
 `MIT OR Apache-2.0` license terms.
+
+Published evidence archives retain the package name recorded when those runs were made.
+They are immutable provenance, so the rename does not rewrite them. Generate new evidence
+from a checkout with `Pkg.develop(path=".")`; new runs record `NeuroPulse` while numerical
+metrics remain comparable with the archived runs.
 
 ## Controlled attention plus routing
 

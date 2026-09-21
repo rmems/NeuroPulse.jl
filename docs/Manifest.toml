@@ -1,8 +1,8 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.12.6"
+julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "cb5f25886bf43aad251270e7d522500da55c3fc4"
+project_hash = "ad474c0084ac379f75e7f7f344fbf998a9e56748"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -188,6 +188,12 @@ version = "2025.11.4"
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 version = "1.3.0"
 
+[[deps.NeuroPulse]]
+deps = ["LinearAlgebra", "Printf"]
+path = ".."
+uuid = "b7e4c3f2-1d2e-4a5b-8c9d-0e1f2a3b4c5e"
+version = "0.1.0"
+
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
@@ -298,12 +304,6 @@ version = "1.0.3"
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 version = "1.10.0"
-
-[[deps.TemporalFocus]]
-deps = ["LinearAlgebra", "Printf"]
-path = ".."
-uuid = "b7e4c3f2-1d2e-4a5b-8c9d-0e1f2a3b4c5e"
-version = "0.1.0"
 
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]

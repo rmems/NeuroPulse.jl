@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 using Documenter
-using TemporalFocus
+using NeuroPulse
 
 makedocs(;
-    modules = [TemporalFocus],
+    modules = [NeuroPulse],
     authors = "Limen Neural and contributors",
     sitename = "NeuroPulse.jl",
     format = Documenter.HTML(;

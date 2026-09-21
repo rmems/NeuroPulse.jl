@@ -1,14 +1,14 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
 """
-    TemporalFocus.Attention
+    NeuroPulse.Attention
 
 Coincidence-based and temporally decayed spike attention, imported from
 [`rmems/TemporalFocus.jl`](https://github.com/rmems/TemporalFocus.jl) at
 `eb38c70aad9f077e0775312a09e4dabe7b4bc016` (ADR 0002).
 
-Public names are re-exported from the parent `TemporalFocus` module. The loadable
-package name remains `TemporalFocus` (UUID `b7e4c3f2-…`); this submodule does not
+Public names are re-exported from the parent `NeuroPulse` module. The loadable
+package name is `NeuroPulse` (UUID `b7e4c3f2-…`); this submodule does not
 introduce a second resolvable package.
 
 # Exports

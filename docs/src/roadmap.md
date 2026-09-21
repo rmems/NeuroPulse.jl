@@ -3,9 +3,8 @@
 ## Current state
 
 NeuroPulse is a real library, but it is still an extraction in progress. The
-public repository is `NeuroPulse.jl`; the loadable Julia module and package name
-remain `TemporalFocus` under the canonical NeuroPulse UUID until a deliberate
-metadata migration.
+public repository, Julia package, and loadable module are `NeuroPulse`, under
+the canonical UUID `b7e4c3f2-1d2e-4a5b-8c9d-0e1f2a3b4c5e`.
 
 It already provides:
 - spike-density scoring
@@ -22,7 +21,7 @@ shape rmems wants.
 
 ## What still needs work
 
-### 1. Package identity and compatibility names
+### 1. Compatibility names
 
 The preferred routing API is already generic: `ActivityRegion`, `RegionRouter`,
 `update_routing!`, and `routing_diagnostics`. The older NERO names remain as
@@ -33,10 +32,10 @@ Examples:
 - `nero_diagnostics`
 - `NERO_*` constants
 
-The remaining identity work is the deliberate Julia package/module rename away
-from `TemporalFocus`, with a migration plan that preserves the canonical UUID
-and existing consumers. Compatibility aliases should be removed only through a
-documented deprecation path.
+The Julia package/module rename to `NeuroPulse` is complete. Existing consumers
+must replace `using TemporalFocus` with `using NeuroPulse`; the prior package
+import is not exposed as a compatibility alias. The routing aliases should be
+removed only through a documented deprecation path.
 
 ### 2. Default assumptions are still historical
 

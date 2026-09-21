@@ -1,18 +1,18 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 """
-    TemporalFocus
+    NeuroPulse
 
 Spike-driven relevance routing and coincidence attention for modular neural systems.
 
-The loadable Julia module name is `TemporalFocus` (UUID
-`b7e4c3f2-1d2e-4a5b-8c9d-0e1f2a3b4c5e`). The public repository is NeuroPulse.jl.
+The loadable Julia module name is `NeuroPulse` (UUID
+`b7e4c3f2-1d2e-4a5b-8c9d-0e1f2a3b4c5e`).
 
 Routing computes per-tick weights across activity-region summaries using:
 - spike density (α=0.50)
 - manifold surprise via EMA deviation (β=0.35)
 - routing momentum (γ=0.15)
 
-Attention (`TemporalFocus.Attention`, imported from TemporalFocus.jl / ADR 0002)
+Attention (`NeuroPulse.Attention`, imported from TemporalFocus.jl / ADR 0002)
 owns spike events, trains, temporal buffers, and coincidence kernels.
 
 The package is not a full SNN runtime, training system, or hardware integration layer.
@@ -26,13 +26,13 @@ Use `ActivityRegion`, `RegionRouter`, `update_routing!`, and `routing_diagnostic
 `SpikeEvent`, `SpikeTrain`, `TemporalBuffer`, `spike_attention_*`, `temporal_weight`,
 `prune!`, `normalize_l1!`, `normalize_max!`.
 
-## Legacy API (backward compatible)
+## Legacy routing API (backward compatible)
 
 `LobeState`, `NeroOrchestrator`, `update_relevance!`, and `nero_diagnostics` are
 aliases that map to the generic types. They will continue to work but new code
 should prefer the generic names.
 """
-module TemporalFocus
+module NeuroPulse
 
 # ── Generic API (preferred) ───────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ export ActivityRegion,
     RegionRouter, RoutingConfig, update_routing!, routing_diagnostics, adapt_leak!
 export save_state, load_state!, load_state
 
-# Attention surface (re-exported from TemporalFocus.Attention)
+# Attention surface (re-exported from NeuroPulse.Attention)
 export SpikeEvent, SpikeTrain, TemporalBuffer
 export prune!, temporal_weight
 export spike_attention_discrete, spike_attention_temporal, spike_attention_continuous

@@ -1,4 +1,4 @@
-# TemporalFocus documentation index
+# NeuroPulse documentation index
 
 Documenter builds from `docs/src/` via `docs/make.jl` and deploys to GitHub Pages.
 

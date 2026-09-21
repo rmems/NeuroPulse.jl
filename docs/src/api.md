@@ -1,8 +1,8 @@
-# TemporalFocus API notes
+# NeuroPulse API notes
 
 For the frozen interop data-shape contract (Float32 rates in `[0,1]`, readout length
 `n_out`, `routing_weights` length `n_regions` summing ~1), see [`interop.md`](interop.md).
-Spike trains are owned by `TemporalFocus.Attention` (ADR 0002); they are not inputs to
+Spike trains are owned by `NeuroPulse.Attention` (ADR 0002); they are not inputs to
 `update_routing!`.
 
 This document summarizes the exported API as it exists today.
@@ -157,7 +157,7 @@ Notes:
 - it is not required for the core routing algorithm
 - custom `stress_adapter` is preferred when stress is not percent-scale
 
-## Attention (`TemporalFocus.Attention`)
+## Attention (`NeuroPulse.Attention`)
 
 Imported from `rmems/TemporalFocus.jl@eb38c70` (ADR 0002). Re-exported from the
 parent module.
@@ -182,7 +182,7 @@ change `ActivityRegion` / `RegionRouter` / `update_routing!`.
 
 These are current limitations, not hidden behavior:
 
-- the package name is generalized (`TemporalFocus`); some exported symbols still carry NERO naming
+- the package name is generalized (`NeuroPulse`); some exported symbols still carry NERO naming
 - module-level `ALPHA`…`EPSILON` remain as defaults / `NERO_*` aliases; prefer `RoutingConfig` for per-router tuning
 - defaults still imply a four-component example layout for names / historical `INHIBIT`
 - inhibition is configurable via `RegionRouter(; inhibition_matrix=...)` (see field notes above)
