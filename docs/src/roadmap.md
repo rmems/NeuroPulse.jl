@@ -1,31 +1,42 @@
-# TemporalFocus roadmap and candid status
+# NeuroPulse roadmap and candid status
 
 ## Current state
 
-TemporalFocus is a real library, but it is still an extraction in progress.
+NeuroPulse is a real library, but it is still an extraction in progress. The
+public repository is `NeuroPulse.jl`; the loadable Julia module and package name
+remain `TemporalFocus` under the canonical NeuroPulse UUID until a deliberate
+metadata migration.
 
-It already provides a useful routing core:
+It already provides:
 - spike-density scoring
 - EMA-based surprise tracking
 - momentum-aware routing updates
 - inhibition and normalization
+- per-router scoring through `RoutingConfig`
+- validated state snapshots through `save_state` / `load_state!`
+- spike-event, train, buffer, and coincidence-attention APIs imported from the
+  sibling TemporalFocus implementation under ADR 0002
 
 At the same time, it still needs substantial work before it reaches the fuller long-term
 shape rmems wants.
 
 ## What still needs work
 
-### 1. Naming cleanup
+### 1. Package identity and compatibility names
 
-The repository/package name is now `TemporalFocus`, but parts of the API still expose older
-NERO-specific naming.
+The preferred routing API is already generic: `ActivityRegion`, `RegionRouter`,
+`update_routing!`, and `routing_diagnostics`. The older NERO names remain as
+backward-compatible aliases:
 
 Examples:
 - `NeroOrchestrator`
 - `nero_diagnostics`
 - `NERO_*` constants
 
-That is acceptable for now, but likely not the final naming scheme.
+The remaining identity work is the deliberate Julia package/module rename away
+from `TemporalFocus`, with a migration plan that preserves the canonical UUID
+and existing consumers. Compatibility aliases should be removed only through a
+documented deprecation path.
 
 ### 2. Default assumptions are still historical
 
@@ -35,8 +46,12 @@ The default region names are:
 - `Region3`
 - `Region4`
 
-Those are useful examples, but they still imply a four-component layout. Future cleanup
-should separate example defaults from the core conceptual model.
+Those are useful examples, but they still imply a four-component layout. For
+`n_regions <= 4`, the default inhibition matrix also preserves the historical
+top-left layout. Larger routers already receive a generated distance-decaying
+matrix, and every router may provide custom names and a custom inhibition
+matrix. Future cleanup should separate example defaults from the core
+conceptual model without changing those supported overrides.
 
 ### 3. Stress adaptation is generic with a default percent-scale adapter
 
@@ -45,14 +60,19 @@ keyword. The default adapter still interprets `[0, 100]` percent-scale input for
 backward compatibility; callers may supply a custom adapter to map arbitrary stress
 domains into `[0, 1]` before interpolation.
 
-### 4. Configuration surface is still minimal
+### 4. Configuration and state are implemented
 
-Scoring weights (α/β/γ, EMA decay, floors) remain module-level constants. That keeps the
-library simple, but it limits experimentation with alternate scoring weights and
-floor/normalization policies.
+`RoutingConfig` provides per-router `alpha`, `beta`, `gamma`, `ema_decay`,
+`min_score`, and `epsilon` values. The module-level constants are defaults and
+legacy `NERO_*` aliases; they do not prevent per-router tuning. Configuration is
+validated at construction and when `router.config` is replaced.
 
-Inhibition matrices are already configurable: pass `inhibition_matrix=` to
-`RegionRouter` (or accept the default generator for any `n_regions`).
+`save_state` copies mutable routing state together with labels, graph,
+inhibition matrix, and `RoutingConfig`. `load_state!` validates the target
+router's dimensions and structural configuration before restoring the mutable
+state; `load_state` remains a mutating compatibility alias. Future work here is
+operational guidance for checkpoint versioning and persistence formats, not the
+absence of snapshot support.
 
 ### 5. Documentation still needs to grow with the API
 
@@ -78,18 +98,18 @@ benefits require their own measurements.
 
 ## Desired long-term direction
 
-A stronger future TemporalFocus would look like this:
+A stronger future NeuroPulse would look like this:
 
 - clean package identity with generalized naming
 - explicit ownership boundaries
 - neutral examples by default
-- configurable routing/inhibition policies
+- documented recipes for the existing routing and inhibition configuration surfaces
 - adapter notes with upstream SNN and reservoir libraries (compact `ActivityRegion` / `RegionRouter` shapes are already frozen in `interop.md`, GH#14)
 - documentation that describes both current behavior and intended evolution
 
 ## What this library should remain
 
-Even after more work, TemporalFocus should remain small.
+Even after more work, NeuroPulse should remain small.
 
 It should be a routing/relevance library, not a monolithic platform.
 That means future growth should sharpen the boundary rather than blur it.
