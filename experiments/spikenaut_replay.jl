@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
-using CairoMakie, ExperimentUtils, TemporalFocus, TOML, SHA
+using CairoMakie, ExperimentUtils, NeuroPulse, TOML, SHA
 include(joinpath(@__DIR__,"src","SpikenautReplay.jl"))
 include(joinpath(@__DIR__,"src","SpikenautReport.jl"))
 using .SpikenautReplay
 
 function main(args=copy(ARGS))
-    options = parse_options(prepare_experiment!(TemporalFocus,args))
+    options = parse_options(prepare_experiment!(NeuroPulse,args))
     cfg = validate_config(TOML.parsefile(options.config))
     data = read_replay(options.trace,options.manifest)
     result = run_replay(data,cfg)

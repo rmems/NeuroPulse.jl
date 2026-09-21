@@ -1,6 +1,6 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-TemporalFocus = "b7e4c3f2-1d2e-4a5b-8c9d-0e1f2a3b4c5e"
+NeuroPulse = "b7e4c3f2-1d2e-4a5b-8c9d-0e1f2a3b4c5e"
 
 [compat]
 Documenter = "1"

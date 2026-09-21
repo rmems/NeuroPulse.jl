@@ -14,7 +14,7 @@ using CairoMakie
 using ExperimentUtils
 using Printf
 using Random
-using TemporalFocus
+using NeuroPulse
 
 const SLUG = "temporal_lens"
 
@@ -562,7 +562,7 @@ normal range near `x ≈ 87.3` and reaches zero near `x ≈ 103.9`, so past roug
 end
 
 function main()
-    extra_args = prepare_experiment!(TemporalFocus)
+    extra_args = prepare_experiment!(NeuroPulse)
     isempty(extra_args) || error("unexpected arguments: $(join(extra_args, ", "))")
     # The sweep is a fixed grid; the seed is constructed and recorded so the
     # run satisfies the harness determinism contract.

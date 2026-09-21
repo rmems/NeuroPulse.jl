@@ -1,12 +1,12 @@
-# TemporalFocus.jl
+# NeuroPulse.jl
 
 ```@meta
-CurrentModule = TemporalFocus
+CurrentModule = NeuroPulse
 ```
 
 Spike-driven relevance routing and coincidence attention for modular neural systems.
 
-TemporalFocus computes per-tick routing weights across activity-region summaries from:
+NeuroPulse computes per-tick routing weights across activity-region summaries from:
 
 - spike density
 - readout surprise relative to an exponential moving average
@@ -29,7 +29,7 @@ Depth = 2
 (or replace entries in the vector). Mutating fields after construction is not supported.
 
 ```julia
-using TemporalFocus
+using NeuroPulse
 
 router = RegionRouter(
     n_regions = 4,
@@ -50,9 +50,10 @@ router.routing_weights
 ## Package
 
 The public repository is **[NeuroPulse.jl](https://github.com/rmems/NeuroPulse.jl)**.
-The loadable Julia module name is still **TemporalFocus** (UUID `b7e4c3f2-…`) until a
-follow-up rename.
+The loadable Julia module is **NeuroPulse** (UUID `b7e4c3f2-…`). Existing code
+must replace `using TemporalFocus` with `using NeuroPulse`; the old package import
+is not provided as an alias.
 
 ```@docs
-TemporalFocus
+NeuroPulse
 ```

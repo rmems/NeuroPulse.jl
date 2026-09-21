@@ -24,7 +24,7 @@ julia +1.12.7 --project=experiments experiments/run_all.jl --out-dir experiments
 Give concurrent runs distinct `--out-dir` roots so they do not overwrite one
 another's artifacts.
 
-Every entrypoint validates that the canonical TemporalFocus UUID resolves to
+Every entrypoint validates that the canonical NeuroPulse UUID resolves to
 this NeuroPulse checkout. A run contains `config.toml`, `metrics.csv`,
 `figure.png`, `summary.md`, `provenance.toml`, and snapshots of the exact
 resolved Project and Manifest.
@@ -41,6 +41,11 @@ generated from clean NeuroPulse commit `14e68ac` on Julia 1.12.7.
 Archive SHA-256: `085d969071f6cd702a614b5bccf6a54261b7155e90e1a24c0523725b2e9ee8c7`. The archived environment records the original
 local checkout path; follow the setup above with `Pkg.develop(path=".")` to
 bind the canonical UUID to your checkout when reproducing.
+
+The archive also retains the package name recorded by that historical run.
+Those bytes stay unchanged as provenance. New runs from the renamed checkout
+record `NeuroPulse`; compare their numerical CSVs with the archive while
+expecting timestamps and package/config provenance to differ.
 
 ## Controlled findings
 

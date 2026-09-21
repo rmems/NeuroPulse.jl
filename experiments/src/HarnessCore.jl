@@ -6,7 +6,7 @@ module HarnessCore
 export configure_output_dir!, validate_checkout!, prepare_experiment!
 export repo_root, result_dir, figure_path
 
-const _RESULTS_ENV = "TEMPORALFOCUS_RESULTS_DIR"
+const _RESULTS_ENV = "NEUROPULSE_RESULTS_DIR"
 const _SLUG_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._-]*$"
 
 """Return the absolute NeuroPulse checkout root derived from this source file."""
@@ -39,17 +39,17 @@ function configure_output_dir!(args::AbstractVector{<:AbstractString})
     return remaining
 end
 
-"""Fail unless the canonical TemporalFocus UUID is loaded from this checkout."""
+"""Fail unless the canonical NeuroPulse UUID is loaded from this checkout."""
 function validate_checkout!(package_module::Module)
     package_id = Base.PkgId(package_module)
     string(package_id.uuid) == "b7e4c3f2-1d2e-4a5b-8c9d-0e1f2a3b4c5e" ||
-        error("experiment loaded TemporalFocus with unexpected UUID $(package_id.uuid)")
+        error("experiment loaded NeuroPulse with unexpected UUID $(package_id.uuid)")
     package_dir = Base.pkgdir(package_module)
     package_dir === nothing && error("experiment package has no pkgdir")
     actual = realpath(package_dir)
     expected = repo_root()
     actual == expected || error(
-        "experiment loaded TemporalFocus from $actual; expected this checkout at $expected",
+        "experiment loaded NeuroPulse from $actual; expected this checkout at $expected",
     )
     return expected
 end
