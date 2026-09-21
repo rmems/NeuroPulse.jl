@@ -19,7 +19,7 @@ runtime, training system, or hardware integration layer.
 ## Documentation
 
 ```@contents
-Pages = ["overview.md", "api.md", "interop.md", "package-identity.md", "roadmap.md"]
+Pages = ["overview.md", "api.md", "interop.md", "experiments.md", "package-identity.md", "roadmap.md"]
 Depth = 2
 ```
 

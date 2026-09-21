@@ -18,6 +18,7 @@ makedocs(;
         "Overview" => "overview.md",
         "API" => "api.md",
         "Interop" => "interop.md",
+        "Experiment Gallery" => "experiments.md",
         "Package identity" => "package-identity.md",
         "Roadmap" => "roadmap.md",
     ],

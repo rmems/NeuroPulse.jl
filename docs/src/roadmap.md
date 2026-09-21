@@ -62,6 +62,20 @@ This README/docs pass is a cleanup step, not the end state. Useful future docs w
 - design notes on choosing spike-rate normalization
 - stability notes for long-running routing loops
 
+### 6. Controlled evidence now exists; real traces come later
+
+The isolated experiment gallery now characterizes coincidence temporal
+weighting and hard-window behavior on deterministic synthetic spike scenes.
+Those runs preserve their exact configuration, resolved environment, inputs,
+source hashes, metrics, and figures. They establish reproducible kernel
+behavior under controlled conditions.
+
+They do not establish behavior on recorded Spikenaut workloads. A later
+downstream characterization should consume a versioned trace through an
+explicit adapter, record the trace digest, and keep workload conclusions
+separate from these synthetic controls. Training effects and deployed runtime
+benefits require their own measurements.
+
 ## Desired long-term direction
 
 A stronger future TemporalFocus would look like this:
