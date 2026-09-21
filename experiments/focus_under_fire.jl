@@ -832,7 +832,8 @@ function _build_summary(rows, agg, seps, figures, clean::Condition, noisy::Condi
     println(io)
     println(io, "Identical inputs on the same Julia version reproduce byte-identical `metrics.csv`.")
     println(io, "`write_config` appends a `[provenance]` table (git commit, dirty flag, Julia")
-    println(io, "version, UTC timestamp). This script also records the plotting stack under")
+    println(io, "version). The run timestamp is recorded separately in `provenance.toml`.")
+    println(io, "This script also records the plotting stack under")
     println(io, "`[environment]`:")
     println(io)
     println(io, "```text")
@@ -857,7 +858,8 @@ function _build_config(clean::Condition, noisy::Condition, scene_seed::Integer)
         "slug" => SLUG,
         "hypothesis" => HYPOTHESIS,
         # Plotting stack for this run. The harness also appends `[provenance]`
-        # (git commit, dirty flag, Julia version, UTC timestamp). Figures may
+        # (git commit, dirty flag, Julia version). The generated UTC time is
+        # recorded separately in provenance.toml. Figures may
         # differ across renderer versions; `metrics.csv` does not.
         "environment" => Dict{String,Any}(
             "julia" => string(VERSION),
@@ -938,7 +940,10 @@ function main()
     metrics_path = write_metrics(SLUG, rows)
     figures = [_figure_retention(agg), _figure_top1(agg), _figure_scene(clean, noisy, scene_seed)]
     summary_path = write_summary(SLUG, _build_summary(rows, agg, seps, figures, clean, noisy))
-    provenance_path = finalize_run(SLUG)
+    provenance_path = finalize_run(
+        SLUG;
+        extra_artifacts = ["top1_correctness.png", "scene_clean_vs_noisy.png"],
+    )
 
     println("[$(SLUG)] rows: $(length(rows))")
     println("[$(SLUG)] separating (condition × kernel-pair) cells: $(length(seps))")

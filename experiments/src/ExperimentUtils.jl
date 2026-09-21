@@ -271,7 +271,7 @@ function _labeled_hashes(paths)
 end
 
 """
-    finalize_run(slug; input_paths=[], script_path=PROGRAM_FILE,
+    finalize_run(slug; input_paths=[], extra_artifacts=[], script_path=PROGRAM_FILE,
                  environment_dir=dirname(Base.active_project())) -> String
 
 Validate the four required artifacts, snapshot the exact resolved experiment
@@ -281,10 +281,15 @@ experiment, every Julia source file under `src/` and `experiments/` (excluding
 generated results), and the resolved environment. The UTC generation time
 lives only in `provenance.toml`; deterministic metrics and configuration remain
 timestamp-free.
+
+`extra_artifacts` names additional files directly under the run directory that
+must exist and be included in the artifact digest table. Names must be relative
+file names, not paths.
 """
 function finalize_run(
     slug::AbstractString;
     input_paths::AbstractVector{<:AbstractString} = String[],
+    extra_artifacts::AbstractVector{<:AbstractString} = String[],
     script_path::AbstractString = PROGRAM_FILE,
     environment_dir::AbstractString = dirname(Base.active_project()),
 )
@@ -305,7 +310,21 @@ function finalize_run(
     cp(project_source, project_snapshot; force = true)
     cp(manifest_source, manifest_snapshot; force = true)
 
-    artifact_names = vcat(required, ["Project.toml", "Manifest.toml"])
+    extras = String[]
+    for artifact in extra_artifacts
+        name = String(artifact)
+        if isempty(name) || isabspath(name) || basename(name) != name || name in (".", "..")
+            throw(ArgumentError("extra artifact must be a relative file name: $(repr(name))"))
+        end
+        push!(extras, name)
+    end
+
+    artifact_names = unique(vcat(required, ["Project.toml", "Manifest.toml"], extras))
+    for name in extras
+        isfile(joinpath(dir, name)) || error(
+            "experiment $(repr(slug)) did not produce declared extra artifact $name",
+        )
+    end
     artifacts = Dict(name => _sha256_file(joinpath(dir, name)) for name in artifact_names)
 
     script_inputs = String[script_path]

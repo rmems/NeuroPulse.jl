@@ -78,6 +78,46 @@ end
             @test haskey(provenance["package_sources"], "experiments/src/HarnessCore.jl")
             @test haskey(provenance["artifacts"], "metrics.csv")
 
+            extra_artifact = joinpath(run_dir, "diagnostic.png")
+            write(extra_artifact, "extra artifact v1\n")
+            extra_provenance_path = finalize_run(
+                "probe";
+                input_paths = [input],
+                script_path = script,
+                environment_dir = environment,
+                extra_artifacts = ["diagnostic.png"],
+            )
+            extra_provenance = TOML.parsefile(extra_provenance_path)
+            @test extra_provenance["artifacts"]["diagnostic.png"] ==
+                  "132b7ece243c2647c63c5d464c0ff52e3ad04c1ac7727746c241836d660334e1"
+
+            write(extra_artifact, "extra artifact v2\n")
+            changed_provenance_path = finalize_run(
+                "probe";
+                input_paths = [input],
+                script_path = script,
+                environment_dir = environment,
+                extra_artifacts = ["diagnostic.png"],
+            )
+            changed_provenance = TOML.parsefile(changed_provenance_path)
+            @test changed_provenance["artifacts"]["diagnostic.png"] ==
+                  "aee0a8ac26c4ff93d960a3697fb704260b67fc8abd67ebad5e17880c0a29c1c3"
+            @test changed_provenance["artifacts"]["diagnostic.png"] !=
+                  extra_provenance["artifacts"]["diagnostic.png"]
+
+            @test_throws ErrorException finalize_run(
+                "probe";
+                script_path = script,
+                environment_dir = environment,
+                extra_artifacts = ["missing.png"],
+            )
+            @test_throws ArgumentError finalize_run(
+                "probe";
+                script_path = script,
+                environment_dir = environment,
+                extra_artifacts = ["../escape.png"],
+            )
+
             config = TOML.parsefile(config_path)
             @test !haskey(get(config, "provenance", Dict()), "generated_utc")
         end
