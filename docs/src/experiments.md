@@ -1,7 +1,8 @@
 # Experiment Gallery
 
 The research harness contains six deterministic, synthetic characterizations
-of NeuroPulse's coincidence-attention kernels. They were ported with their
+of NeuroPulse's coincidence-attention kernels, plus a controlled causal
+attention-and-routing study. They were ported with their
 scenes, sweep grids, decision rules, and contrary findings from
 `rmems/TemporalFocus.jl` at
 `c0b51e2f7d473411390dc4a7667fd161326c6492`.
@@ -71,3 +72,82 @@ bind the canonical UUID to your checkout when reproducing.
 ### Memory Gate
 
 ![Tau by window memory surface](assets/experiments/memory_gate.png)
+
+
+## Controlled attention plus routing
+
+The routing study reuses the spotlight timing and target sequence (2 → 5 → 3 → 6),
+with five observed consecutive correct samples required to confirm each handoff.
+The full fixed grid contains 243 paired scenes: distractor amplitudes
+`[0.35, 1.0, 2.0]`, stale previous-target durations `[0, 0.25, 0.60]` seconds,
+independent timestamp jitter amplitudes `[0, 0.012, 0.06]` seconds, missing-interval
+probabilities `[0, 0.15, 0.40]`, and seeds `[11, 29, 47]`. All eight methods consume
+the same observations in each scene. The existing Float32 sampling schedule is
+preserved, including the near-end grid point and exact horizon sample (242 ticks).
+
+**The primary routing-benefit hypothesis is unsupported on this grid.** Adding
+the default router to temporal attention reduces mean target share and strict
+accuracy and increases missed handoffs. These are controlled synthetic results,
+not measured Spikenaut deployment performance or an estimate of learning benefit.
+
+| Method | Mean target share | Strict top-1 | Missed / handoffs | Capped delay (s) |
+|---|---:|---:|---:|---:|
+| Uniform | 0.16667 | 0.00000 | 729 / 729 | 1.20000 |
+| Firing rate | 0.40723 | 0.47429 | 201 / 729 | 0.77580 |
+| Timing-agnostic attention | 0.50031 | 0.49583 | 212 / 729 | 0.73967 |
+| Temporal attention | 0.48883 | 0.51644 | 207 / 729 | 0.71523 |
+| Temporal + router | 0.18383 | 0.24751 | 359 / 729 | 0.77473 |
+| Router without surprise | 0.17164 | 0.60652 | 159 / 729 | 0.70946 |
+| Router without momentum | 0.18358 | 0.24669 | 358 / 729 | 0.77374 |
+| Router without inhibition | 0.18397 | 0.24742 | 359 / 729 | 0.77473 |
+
+The predeclared descriptive decision rule compares each method to **temporal
+attention**, using paired scene/seed differences. Support requires mean target
+share gain ≥ 0.01, strict-top1 gain ≥ 0.02, and no increase in missed handoffs or
+phase-capped delay. Nonpositive share/accuracy gain or increased misses/delay is
+unsupported; smaller positive gains with no regressions are inconclusive. The
+primary full-router differences are −0.30500 share and −0.26894 accuracy. All
+seven comparisons fail the joint rule. The no-surprise ablation's improved
+accuracy is retained alongside its worse target allocation; it is not selected
+as a new tuned configuration. This rule is a finite-grid comparison, not a
+population-level significance test.
+
+A single neuron maps to each region. Density is the fraction of observed recent
+sample bins containing source spikes, bounded in `[0,1]`; the router receives a
+one-element readout containing the normalized temporal attention score, or zero
+when no temporal evidence exists. Each router uses equal 0.02 off-diagonal
+inhibition and zero diagonal, except the explicit no-inhibition ablation.
+The router scores relative readout surprise, density and momentum; high
+attention share does not itself imply high router allocation.
+
+Ground-truth targets and event roles are stripped before runtime ingestion.
+Missing intervals discard unseen arrivals and hold allocations/router state;
+observed silence still advances the router. No-evidence coverage is computed
+from each method's actual inputs and is distinct from missing coverage. Ties are
+incorrect for strict top-1. Missing observations break the sustained-focus
+streak. Every handoff remains in the output, with explicit failure plus blank raw
+delay on a miss; comparison caps those delays at the 1.2-second phase length.
+Average observation coverage is 0.81114. Across all scheduled ticks, observed
+no-evidence coverage is 0.04387 for attention, 0.01979 for rate/router methods,
+and 0.81114 for the data-independent uniform comparator.
+
+![Fixed-grid attention and routing comparison](assets/experiments/routing_selection.png)
+
+Reproduce from the checkout with Julia 1.12.7:
+
+```bash
+julia +1.12.7 --project=experiments experiments/routing_selection.jl \
+  --config experiments/configs/routing_selection.toml --out-dir experiments/results
+julia +1.12.7 --project=experiments experiments/test/runtests.jl
+```
+
+The [routing study evidence bundle](assets/experiments/routing-selection-evidence.tar.gz)
+contains the effective configuration, scene/method metrics, every handoff,
+per-tick allocations/evidence, paired differences, generated events and masks,
+aggregate verdicts, figure, summary, source/input hashes, and resolved environment
+snapshots. It was generated from clean source commit `985e22a`. Two complete
+runs produce byte-identical numerical CSV artifacts. The original spotlight
+metrics are also byte-identical after extraction of its reusable generator.
+
+Routing evidence archive SHA-256:
+`90a1d5e66ef277281a3d34eac0e12d91e8d8c5028265d7c9dec69ceb520f18f8`
