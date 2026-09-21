@@ -151,3 +151,90 @@ metrics are also byte-identical after extraction of its reusable generator.
 
 Routing evidence archive SHA-256:
 `90a1d5e66ef277281a3d34eac0e12d91e8d8c5028265d7c9dec69ceb520f18f8`
+
+## Offline Spikenaut replay
+
+**Synthetic method fixture; descriptive allocations only.** This study consumes
+an actual frozen replay producer's `trace.jsonl` and `manifest.json`, but its
+input telemetry is synthetic. It is not measured hardware evidence, a holdout,
+or a performance result. The fixture was generated twice with identical bytes
+from Spikenaut-SNN commit `72e624eb54fa9f688d8d2e9d0fe86ebf467d6ba3` and its
+original telemetry, trace, manifest and attribution are committed under
+`experiments/fixtures/spikenaut/`. The source manifest remains unchanged,
+including `source.dirty: null`; null is not rewritten as a clean-checkout claim.
+
+The fixture has 10 original ticks in two five-tick sessions, 16 neurons and
+32 spikes from the shipped model bank (k=4). One neuron maps to one analysis
+region, with explicit zero-based producer to one-based Julia conversion. This
+mapping is not a claim about neuron function. Source is the **current tick**;
+context is **strictly earlier ticks in the same session**. The current event
+cannot match itself. The declared window grid is `[1, 2, 4, 8]` ticks with
+`tau=2` ticks. There are no usable timestamps, so these are never seconds and
+staleness remains unknown.
+
+| Window (ticks) | Temporal attention HHI | Attention entropy (bits) | Router HHI | Router entropy (bits) | Router turnover | Eligible / all |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 0.06250 | 4.00000 | 0.06299 | 3.99437 | 0.03690 | 8 / 10 |
+| 2 | 0.17188 | 3.25000 | 0.13991 | 3.49167 | 0.28640 | 8 / 10 |
+| 4 | 0.17188 | 3.25000 | 0.13991 | 3.49167 | 0.28640 | 8 / 10 |
+| 8 | 0.17188 | 3.25000 | 0.13991 | 3.49167 | 0.28640 | 8 / 10 |
+
+The full table also includes uniform, firing-rate and discrete-attention
+comparators. Discrete and temporal attention have identical normalized
+allocations on this particular small fixture; this does not establish their
+general equivalence. At window 1 there are no matching current/past neuron
+pairs, so all eight eligible attention samples have zero evidence and uniform
+fallback allocations. At larger windows, six of eight remain zero-evidence.
+Uniform HHI is 1/16 and entropy is 4 bits; more concentration is not inherently
+better. All methods have tied maxima on this fixture, so none has a unique
+winner. There are no target labels or accuracy/supervisor conclusions.
+
+Any missing sensor makes its whole row unobserved. Comparisons whose closed
+`[t-window,t]` contains that row are excluded. The adapter retains original
+global ticks, discards missing-row arrivals, clears local history and resets
+the router; subsequent observed context accumulates while the router stays
+reset until the local window clears. Sessions reset all analysis state
+independently. **This does not undo upstream LIF state that already evolved
+through encode-zero dropout, and local eligibility does not prove upstream
+recovery.** This fixture's two missing rows end the first session, so its
+constant 80% eligible coverage does not demonstrate same-session recovery.
+Separate focused tests exercise exclusion and local state isolation when
+observations resume later in a session.
+
+Two observed silent ticks stay separate from the two missing ticks. Missing or
+excluded evidence/statistics remain blank in CSVs rather than becoming observed
+zeros. Means use eligible ticks, including zero-evidence uniform fallbacks.
+Turnover is total variation across the six consecutive eligible same-session
+pairs, with no bridge across exclusions or boundaries. HHI is sum(p²); entropy
+is -sum(p log2 p) in bits. Future external traces can have different eligible
+sets across windows, limiting direct comparisons of their means.
+
+![Descriptive allocation window sensitivity on a synthetic Spikenaut fixture](assets/experiments/spikenaut_replay.png)
+
+```bash
+julia +1.12.7 --project=experiments experiments/spikenaut_replay.jl --out-dir experiments/results
+julia +1.12.7 --project=experiments experiments/spikenaut_replay.jl \
+  --trace /path/to/trace.jsonl --manifest /path/to/manifest.json \
+  --config experiments/configs/spikenaut_replay.toml --out-dir /path/to/results
+```
+
+Both external inputs are required together and default to
+`unverified/unspecified`. The known synthetic trace is recognized by SHA-256
+even with explicit paths or renamed copies, and must remain labeled synthetic. `--data-kind measured-user-declared` is only a caller's
+provenance label, not independent attestation. Schemas, trace digest, finite
+input shapes, neuron IDs, consecutive global steps, source-line ordering,
+non-repeating sessions and manifest aggregates are checked before analysis.
+The producer's checkpoint and external telemetry are not independently
+re-attested by this adapter, and upstream decision diagnostics do not steer it.
+
+The [compact replay evidence bundle](assets/experiments/spikenaut-replay-evidence.tar.gz)
+contains all metrics, every method/tick allocation, coverage masks, exact input
+snapshots, original synthetic telemetry, declared/effective configurations,
+figure, summary, attribution, hashes and resolved environment snapshots.
+It was generated from clean code commit `c4ce1ef`. Two complete runs produced
+byte-identical metrics, traces, coverage, configuration, summary and PNG.
+The generated UTC timestamp exists only in provenance. Root APIs, prior
+experiments and their evidence were preserved by this study.
+
+Replay evidence archive SHA-256:
+`b6673d4a9948f529315b7a3e6e38e228bdb81ca0cefe2cb84e2c1b9e42ff7fbc`
