@@ -78,19 +78,34 @@ function _toml_table(cfg)
     return table
 end
 
-function _git_output(args::Cmd)
+function _git_output(args::Cmd, checkout_root::AbstractString = repo_root())
     try
-        return strip(read(pipeline(Cmd(`git -C $(repo_root()) $args`); stderr = devnull), String))
+        output = strip(
+            read(pipeline(Cmd(`git -C $checkout_root $args`); stderr = devnull), String),
+        )
+        return (success = true, output)
     catch
-        return ""
+        return (success = false, output = "")
     end
 end
 
-function _provenance()
-    commit = _git_output(`rev-parse HEAD`)
+function _git_state(checkout_root::AbstractString = repo_root())
+    commit = _git_output(`rev-parse HEAD`, checkout_root)
+    worktree = _git_output(`status --porcelain`, checkout_root)
+    inspectable = commit.success && !isempty(commit.output) && worktree.success
     return Dict{String,Any}(
-        "git_commit" => isempty(commit) ? "unknown" : commit,
-        "git_dirty" => !isempty(_git_output(`status --porcelain`)),
+        "commit" => commit.success && !isempty(commit.output) ? commit.output : "unknown",
+        "dirty" => inspectable ? !isempty(worktree.output) : "unknown",
+        "status" => inspectable ? "known" : "unknown",
+    )
+end
+
+function _provenance(checkout_root::AbstractString = repo_root())
+    git = _git_state(checkout_root)
+    return Dict{String,Any}(
+        "git_commit" => git["commit"],
+        "git_dirty" => git["dirty"],
+        "git_status" => git["status"],
         "julia_version" => string(VERSION),
     )
 end
@@ -105,10 +120,12 @@ same file. Values are normalized for TOML: `Float32` is widened through its
 shortest decimal form (`0.2f0` → `0.2`), `Symbol` becomes a string, and nested
 dictionaries/named tuples become sub-tables.
 
-A deterministic `[provenance]` table (git commit, dirty flag, Julia version) is
-appended automatically unless `cfg` already defines `provenance`. The generated
-UTC timestamp is written separately by [`finalize_run`](@ref), so it cannot
-change `config.toml` or `metrics.csv`.
+A deterministic `[provenance]` table (git commit, dirty state, Git inspection
+status, Julia version) is appended automatically unless `cfg` already defines
+`provenance`. If Git cannot inspect the checkout, its commit and dirty state are
+recorded as `"unknown"` rather than claiming a clean tree. The generated UTC
+timestamp is written separately by [`finalize_run`](@ref), so it cannot change
+`config.toml` or `metrics.csv`.
 
 # Arguments
 - `slug::AbstractString`: experiment slug
@@ -285,6 +302,10 @@ timestamp-free.
 `extra_artifacts` names additional files directly under the run directory that
 must exist and be included in the artifact digest table. Names must be relative
 file names, not paths.
+
+The `[git]` table retains a Boolean `dirty` value when Git inspection succeeds.
+If the checkout cannot be inspected, `status`, `commit`, and `dirty` explicitly
+record `"unknown"` so an unavailable Git command cannot be mistaken for clean.
 """
 function finalize_run(
     slug::AbstractString;
@@ -333,16 +354,13 @@ function finalize_run(
 
     package_sources = _source_hashes()
 
-    commit = _git_output(`rev-parse HEAD`)
+    git = _git_state()
     provenance = Dict{String,Any}(
         "generated" => Dict(
             "utc" => Dates.format(Dates.now(Dates.UTC), "yyyy-mm-ddTHH:MM:SSZ"),
             "julia_version" => string(VERSION),
         ),
-        "git" => Dict(
-            "commit" => isempty(commit) ? "unknown" : commit,
-            "dirty" => !isempty(_git_output(`status --porcelain`)),
-        ),
+        "git" => git,
         "artifacts" => artifacts,
         "inputs" => inputs,
         "package_sources" => package_sources,

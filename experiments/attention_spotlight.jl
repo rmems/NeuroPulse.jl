@@ -516,15 +516,22 @@ function main(cfg = CONFIG)
     save(fig_path, figure)
 
     artifacts = [config_path, scenario_path, metrics_path, fig_path]
+    animation_artifacts = String[]
 
     if get(ENV, "SPOTLIGHT_ANIMATE", "0") == "1"
-        push!(artifacts, render_animation(cfg, steps, figure_path(cfg.slug, "spotlight.gif")))
+        animation_path = render_animation(cfg, steps, figure_path(cfg.slug, "spotlight.gif"))
+        push!(artifacts, animation_path)
+        push!(animation_artifacts, basename(animation_path))
     end
 
     summary_path = write_summary(cfg.slug, summary_markdown(cfg, events, steps, segments,
                                                             moves, artifacts))
     push!(artifacts, summary_path)
-    push!(artifacts, finalize_run(cfg.slug; input_paths = [scenario_path]))
+    push!(artifacts, finalize_run(
+        cfg.slug;
+        input_paths = [scenario_path],
+        extra_artifacts = animation_artifacts,
+    ))
 
     println("Attention spotlight replay")
     println("  events replayed : ", length(events))

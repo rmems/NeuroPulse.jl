@@ -61,6 +61,10 @@ required artifacts, executing experiment script, declared data inputs, every
 Julia source file under root `src/` and `experiments/` (excluding generated
 results), declared extra artifacts, and the resolved environment. Generated
 time is therefore separate from deterministic `config.toml` and `metrics.csv`.
+When Git inspection succeeds, the existing commit and Boolean dirty fields are
+preserved and `git_status`/`git.status` is `"known"`. In an archive, non-Git
+checkout, or command failure, the status, commit, and dirty state are recorded
+as `"unknown"`; an uninspectable checkout is never reported as clean.
 
 Every experiment must:
 

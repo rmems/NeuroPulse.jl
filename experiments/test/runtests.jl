@@ -32,6 +32,38 @@ using TOML
     end
 end
 
+@testset "fail-closed git provenance" begin
+    mktempdir() do checkout
+        unknown = ExperimentUtils._git_state(checkout)
+        @test unknown["commit"] == "unknown"
+        @test unknown["dirty"] == "unknown"
+        @test unknown["status"] == "unknown"
+
+        config_unknown = ExperimentUtils._provenance(checkout)
+        @test config_unknown["git_commit"] == "unknown"
+        @test config_unknown["git_dirty"] == "unknown"
+        @test config_unknown["git_status"] == "unknown"
+
+        run(`git -C $checkout init -q`)
+        write(joinpath(checkout, "tracked.txt"), "clean\n")
+        run(`git -C $checkout add tracked.txt`)
+        run(
+            `git -C $checkout -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture`,
+        )
+
+        clean = ExperimentUtils._git_state(checkout)
+        @test occursin(r"^[0-9a-f]{40}$", clean["commit"])
+        @test clean["dirty"] === false
+        @test clean["status"] == "known"
+
+        write(joinpath(checkout, "untracked.txt"), "dirty\n")
+        dirty = ExperimentUtils._git_state(checkout)
+        @test dirty["commit"] == clean["commit"]
+        @test dirty["dirty"] === true
+        @test dirty["status"] == "known"
+    end
+end
+
 @testset "experiment provenance" begin
     @test validate_checkout!(NeuroPulse) == realpath(joinpath(@__DIR__, "..", ".."))
 
@@ -77,6 +109,8 @@ end
             )
             @test haskey(provenance["package_sources"], "experiments/src/HarnessCore.jl")
             @test haskey(provenance["artifacts"], "metrics.csv")
+            @test provenance["git"]["status"] == "known"
+            @test provenance["git"]["dirty"] isa Bool
 
             extra_artifact = joinpath(run_dir, "diagnostic.png")
             write(extra_artifact, "extra artifact v1\n")
@@ -120,6 +154,8 @@ end
 
             config = TOML.parsefile(config_path)
             @test !haskey(get(config, "provenance", Dict()), "generated_utc")
+            @test config["provenance"]["git_status"] == "known"
+            @test config["provenance"]["git_dirty"] isa Bool
         end
     finally
         if previous === nothing
