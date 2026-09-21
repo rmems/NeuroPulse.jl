@@ -1,6 +1,7 @@
 # TemporalFocus overview
 
-TemporalFocus.jl is a focused routing library for modular neural systems.
+NeuroPulse.jl (loadable module `TemporalFocus`) is a focused routing and coincidence-attention
+library for modular neural systems.
 
 Its job is simple: given a set of component summaries for the current tick, compute a
 normalized relevance vector that can be used by a caller to prioritize which components

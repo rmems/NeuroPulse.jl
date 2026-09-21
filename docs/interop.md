@@ -25,17 +25,22 @@ outputs. It describes what the package **owns** and what it **does not**.
 | `update_routing!` | In-place per-tick relevance update |
 | `routing_diagnostics` | Lightweight string summary for logs |
 | `adapt_leak!` | Optional stress → leak helper (not core routing) |
+| `SpikeEvent` / `SpikeTrain` / `TemporalBuffer` | Attention submodule (ADR 0002 import) |
+| `spike_attention_*` / `prune!` / `normalize_*!` | Coincidence kernels over spike events |
 
 ### What TemporalFocus does **not** own
 
-- Spike **event lists** or full spike **trains**
 - Neuron / synapse / membrane state
 - Reservoir simulation or training loops
 - Token embeddings, ANN/LLM adapters, or deployment supervision
 - Hardware telemetry ingestion (callers reduce telemetry to compact rates)
+- Finance / HFT semantics
 
-Callers must reduce their internal state to the compact shapes below before
-calling into TemporalFocus.
+`RegionRouter` still consumes compact rates and readouts — it does **not** take
+spike trains. Spike trains are a separate public surface (`TemporalFocus.Attention`).
+
+Callers that only need routing must reduce their internal state to the compact
+shapes below before calling `update_routing!`.
 
 ---
 
@@ -182,27 +187,32 @@ update_routing!(router::RegionRouter, regions::Vector{ActivityRegion}) -> nothin
 | Readout length | **`n_out`** for every region |
 | Time base | Caller-defined tick; package is tick-agnostic |
 
-For non-Julia consumers (e.g. a Rust side): treat the boundary as arrays of `f32`
-with the dimensions above. TemporalFocus never requires spike timestamps or event
-lists at the API surface.
+For non-Julia consumers (e.g. a Rust side): treat the **routing** boundary as
+arrays of `f32` with the dimensions above. `update_routing!` never requires spike
+timestamps. Coincidence attention uses `SpikeEvent` / `SpikeTrain` /
+`TemporalBuffer` on a separate surface.
 
 ---
 
 ## Explicit non-shapes
 
-The following are **not** package types and are **not** part of this freeze:
+The following are **not** part of the **routing** freeze:
 
-- Spike trains / event lists (`Vector` of times or `(neuron, t)` pairs)
+- Bare timestamp vectors or `(neuron, t)` pairs that are not `SpikeEvent`
 - Full membrane or synapse tensors
 - Shared “modulator” blobs beyond `ActivityRegion.output`
+
+`SpikeEvent` / `SpikeTrain` / `TemporalBuffer` **are** package types (attention
+surface). They are not inputs to `update_routing!`.
 
 Scoring knobs **are** configurable via `RoutingConfig` / `RegionRouter(; config=...)`.
 Inhibition **is** configurable via `RegionRouter(; inhibition_matrix=...)` (see
 `RegionRouter` fields above). Default still seeds from the historical 4×4
 `INHIBIT` table when `n_regions ≤ 4`.
 
-If a workflow needs spike trains, they belong in the surrounding SNN/runtime
-package; only the per-tick compact activity summaries cross into TemporalFocus.
+If a workflow needs spike trains for coincidence attention, use
+`TemporalFocus.Attention`. Only the per-tick compact activity summaries cross
+into `update_routing!`.
 
 ---
 

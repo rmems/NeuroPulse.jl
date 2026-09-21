@@ -4,7 +4,7 @@
 CurrentModule = TemporalFocus
 ```
 
-Spike-driven relevance routing for modular neural systems.
+Spike-driven relevance routing and coincidence attention for modular neural systems.
 
 TemporalFocus computes per-tick routing weights across activity-region summaries from:
 
@@ -19,7 +19,7 @@ runtime, training system, or hardware integration layer.
 ## Documentation
 
 ```@contents
-Pages = ["overview.md", "api.md", "interop.md", "roadmap.md"]
+Pages = ["overview.md", "api.md", "interop.md", "package-identity.md", "roadmap.md"]
 Depth = 2
 ```
 
@@ -49,8 +49,9 @@ router.routing_weights
 
 ## Package
 
-The Julia package name is **TemporalFocus**. The GitHub repository is
-[NeuroPulse.jl](https://github.com/rmems/NeuroPulse.jl).
+The public repository is **[NeuroPulse.jl](https://github.com/rmems/NeuroPulse.jl)**.
+The loadable Julia module name is still **TemporalFocus** (UUID `b7e4c3f2-…`) until a
+follow-up rename.
 
 ```@docs
 TemporalFocus

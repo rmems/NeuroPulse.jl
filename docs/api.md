@@ -1,8 +1,9 @@
 # TemporalFocus API notes
 
 For the frozen interop data-shape contract (Float32 rates in `[0,1]`, readout length
-`n_out`, `routing_weights` length `n_regions` summing ~1, no owned spike trains), see
-[`interop.md`](interop.md).
+`n_out`, `routing_weights` length `n_regions` summing ~1), see [`interop.md`](interop.md).
+Spike trains are owned by `TemporalFocus.Attention` (ADR 0002); they are not inputs to
+`update_routing!`.
 
 This document summarizes the exported API as it exists today.
 
@@ -19,6 +20,16 @@ routing_diagnostics
 adapt_leak!
 save_state
 load_state!
+SpikeEvent
+SpikeTrain
+TemporalBuffer
+prune!
+temporal_weight
+spike_attention_discrete
+spike_attention_temporal
+spike_attention_continuous
+normalize_l1!
+normalize_max!
 ```
 
 Legacy aliases (same objects):
@@ -145,6 +156,27 @@ Notes:
 - this function is optional convenience logic
 - it is not required for the core routing algorithm
 - custom `stress_adapter` is preferred when stress is not percent-scale
+
+## Attention (`TemporalFocus.Attention`)
+
+Imported from `rmems/TemporalFocus.jl@eb38c70` (ADR 0002). Re-exported from the
+parent module.
+
+```julia
+SpikeEvent(neuron_id::Integer, t::Real, value::Real = 1.0f0)
+SpikeTrain(events=SpikeEvent[])
+TemporalBuffer(window::Real, events=SpikeEvent[])
+prune!(buffer::TemporalBuffer, current_time)
+temporal_weight(dt, τ)
+spike_attention_discrete(source::SpikeTrain, context::SpikeTrain, readout)
+spike_attention_temporal(source::SpikeTrain, context::SpikeTrain, readout; τ=1.0f0)
+spike_attention_continuous(source::TemporalBuffer, context::TemporalBuffer, readout; τ=1.0f0)
+normalize_l1!(weights)
+normalize_max!(weights)
+```
+
+All spike times and values are `Float32`. These APIs are additive: they do not
+change `ActivityRegion` / `RegionRouter` / `update_routing!`.
 
 ## Known API design limitations
 
