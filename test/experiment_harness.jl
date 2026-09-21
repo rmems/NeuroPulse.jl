@@ -13,9 +13,8 @@ using Test
     try
         mktempdir() do tmp
             output = joinpath(tmp, "custom-results")
-            remaining = HarnessCore.configure_output_dir!(
-                ["--out-dir", output, "jitter_test"],
-            )
+            remaining =
+                HarnessCore.configure_output_dir!(["--out-dir", output, "jitter_test"],)
             @test remaining == ["jitter_test"]
             @test HarnessCore.result_dir("probe") == joinpath(output, "probe")
             @test_throws ArgumentError HarnessCore.result_dir("../escape")
