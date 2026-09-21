@@ -130,10 +130,15 @@ surface. These are controlled synthetic scenes that characterize the current
 attention kernels; they are not evidence from a deployed Spikenaut trace and
 do not establish a downstream training or runtime benefit.
 
+From the repository root:
+
 ```bash
 julia +1.12.7 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
 julia +1.12.7 --project=experiments experiments/run_all.jl --out-dir experiments/results
 ```
+
+Give concurrent runs distinct `--out-dir` roots so they do not overwrite one
+another's artifacts.
 
 Each run writes deterministic `config.toml` and `metrics.csv`, a `figure.png`,
 and `summary.md`, plus SHA-256 provenance and snapshots of the resolved

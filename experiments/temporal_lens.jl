@@ -624,7 +624,7 @@ function main()
         supported,
     )
     summary_path = write_summary(SLUG, summary)
-    provenance_path = finalize_run(SLUG)
+    provenance_path = finalize_run(SLUG; extra_artifacts = [curves_file])
 
     println("Temporal Lens — Δt × τ recency field")
     @printf("  grid: %d Δt × %d τ = %d evaluations\n",

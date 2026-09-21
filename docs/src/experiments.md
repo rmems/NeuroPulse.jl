@@ -14,10 +14,15 @@ recorded input digest and adapter boundary.
 
 ## Reproduce
 
+From the repository root:
+
 ```bash
 julia +1.12.7 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
 julia +1.12.7 --project=experiments experiments/run_all.jl --out-dir experiments/results
 ```
+
+Give concurrent runs distinct `--out-dir` roots so they do not overwrite one
+another's artifacts.
 
 Every entrypoint validates that the canonical TemporalFocus UUID resolves to
 this NeuroPulse checkout. A run contains `config.toml`, `metrics.csv`,
@@ -29,10 +34,11 @@ resolved Project and Manifest.
 [Download the characterization evidence bundle](assets/experiments/characterization-evidence.tar.gz)
 contains all seven completed runs: configurations, numerical metrics, figures,
 interpretations, source/input hashes, and resolved environment snapshots.
-These runs were generated from clean NeuroPulse commit `d121fa7` on Julia
-1.12.7; subsequent root-test formatting does not alter their recorded code.
+The archive includes the additional Temporal Lens and Focus Under Fire figures,
+and their digests are recorded in each run's provenance. These runs were
+generated from clean NeuroPulse commit `14e68ac` on Julia 1.12.7.
 
-Archive SHA-256: `ded6513c25751d94b3f733716d82225d8b45a3d74255e41d69e4735e45c03a2c`. The archived environment records the original
+Archive SHA-256: `085d969071f6cd702a614b5bccf6a54261b7155e90e1a24c0523725b2e9ee8c7`. The archived environment records the original
 local checkout path; follow the setup above with `Pkg.develop(path=".")` to
 bind the canonical UUID to your checkout when reproducing.
 

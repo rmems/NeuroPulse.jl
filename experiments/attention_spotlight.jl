@@ -484,8 +484,8 @@ function main(cfg = CONFIG)
 
     dir = result_dir(cfg.slug)
     # Landed `write_config` formats Float32 through its shortest decimal form
-    # and appends a `[provenance]` table (git commit, dirty flag, Julia version,
-    # UTC timestamp).
+    # and appends a deterministic `[provenance]` table (git commit, dirty flag,
+    # Julia version). The generated UTC time is recorded in provenance.toml.
     config_path = write_config(cfg.slug, Dict{String,Any}(
         "n_neurons" => cfg.n_neurons,
         "buffer_window" => cfg.buffer_window,
