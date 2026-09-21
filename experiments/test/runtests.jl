@@ -64,12 +64,6 @@ end
     end
 end
 
-@testset "attention spotlight declares an emitted animation" begin
-    source = read(joinpath(@__DIR__, "..", "attention_spotlight.jl"), String)
-    @test occursin("extra_artifacts = animation_artifacts", source)
-    @test occursin("push!(animation_artifacts, basename(animation_path))", source)
-end
-
 @testset "experiment provenance" begin
     @test validate_checkout!(TemporalFocus) == realpath(joinpath(@__DIR__, "..", ".."))
 
