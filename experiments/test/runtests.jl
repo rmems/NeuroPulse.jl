@@ -1,5 +1,5 @@
 using ExperimentUtils
-using TemporalFocus
+using NeuroPulse
 using Test
 using TOML
 
@@ -65,9 +65,9 @@ end
 end
 
 @testset "experiment provenance" begin
-    @test validate_checkout!(TemporalFocus) == realpath(joinpath(@__DIR__, "..", ".."))
+    @test validate_checkout!(NeuroPulse) == realpath(joinpath(@__DIR__, "..", ".."))
 
-    previous = get(ENV, "TEMPORALFOCUS_RESULTS_DIR", nothing)
+    previous = get(ENV, "NEUROPULSE_RESULTS_DIR", nothing)
     try
         mktempdir() do tmp
             output = joinpath(tmp, "results")
@@ -159,9 +159,9 @@ end
         end
     finally
         if previous === nothing
-            pop!(ENV, "TEMPORALFOCUS_RESULTS_DIR", nothing)
+            pop!(ENV, "NEUROPULSE_RESULTS_DIR", nothing)
         else
-            ENV["TEMPORALFOCUS_RESULTS_DIR"] = previous
+            ENV["NEUROPULSE_RESULTS_DIR"] = previous
         end
     end
 end

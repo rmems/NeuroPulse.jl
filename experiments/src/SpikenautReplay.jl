@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 """Offline adapter only: current-tick spikes against strictly earlier session context."""
 module SpikenautReplay
-using JSON, SHA, TOML, Statistics, TemporalFocus
+using JSON, SHA, TOML, Statistics, NeuroPulse
 export ReplayRow, read_replay, replay_window, run_replay, parse_options, validate_config
 const METHODS = ("uniform", "firing_rate", "discrete_attention", "temporal_attention", "temporal_router")
 const FIXTURE = normpath(joinpath(@__DIR__,"..","fixtures","spikenaut"))

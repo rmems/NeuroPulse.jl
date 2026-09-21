@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
-using TemporalFocus
+using NeuroPulse
 
 """
     reservoir_readout(seed, width)

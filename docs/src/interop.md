@@ -1,10 +1,10 @@
-# TemporalFocus interop contract
+# NeuroPulse interop contract
 
 **Status:** frozen docs/contract (RM-460 / LIM-228 / GH#14)  
 **Scope:** common data shapes at the package boundary — not new SNN types, not routing math.
 
 This document freezes the compact interop shapes that callers and sibling systems
-(including non-Julia sides) should use when feeding TemporalFocus and reading its
+(including non-Julia sides) should use when feeding NeuroPulse and reading its
 outputs. It describes what the package **owns** and what it **does not**.
 
 > Routing state lives in `src/region_router.jl`; per-region summaries live in
@@ -15,7 +15,7 @@ outputs. It describes what the package **owns** and what it **does not**.
 
 ## Ownership boundary
 
-### What TemporalFocus owns
+### What NeuroPulse owns
 
 | Shape / symbol | Role |
 |----------------|------|
@@ -28,7 +28,7 @@ outputs. It describes what the package **owns** and what it **does not**.
 | `SpikeEvent` / `SpikeTrain` / `TemporalBuffer` | Attention submodule (ADR 0002 import) |
 | `spike_attention_*` / `prune!` / `normalize_*!` | Coincidence kernels over spike events |
 
-### What TemporalFocus does **not** own
+### What NeuroPulse does **not** own
 
 - Neuron / synapse / membrane state
 - Reservoir simulation or training loops
@@ -37,7 +37,7 @@ outputs. It describes what the package **owns** and what it **does not**.
 - Finance / HFT semantics
 
 `RegionRouter` still consumes compact rates and readouts — it does **not** take
-spike trains. Spike trains are a separate public surface (`TemporalFocus.Attention`).
+spike trains. Spike trains are a separate public surface (`NeuroPulse.Attention`).
 
 Callers that only need routing must reduce their internal state to the compact
 shapes below before calling `update_routing!`.
@@ -211,7 +211,7 @@ Inhibition **is** configurable via `RegionRouter(; inhibition_matrix=...)` (see
 `INHIBIT` table when `n_regions ≤ 4`.
 
 If a workflow needs spike trains for coincidence attention, use
-`TemporalFocus.Attention`. Only the per-tick compact activity summaries cross
+`NeuroPulse.Attention`. Only the per-tick compact activity summaries cross
 into `update_routing!`.
 
 ---
@@ -220,4 +220,4 @@ into `update_routing!`.
 
 - [`api.md`](api.md) — exported symbols and behavior notes
 - [`overview.md`](overview.md) — architecture and intended usage
-- Repository root README — “What TemporalFocus owns”
+- Repository root README — “What NeuroPulse owns”

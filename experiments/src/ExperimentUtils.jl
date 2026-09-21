@@ -4,7 +4,7 @@
 """
     ExperimentUtils
 
-Shared artifact contract for TemporalFocus.jl experiments.
+Shared artifact contract for NeuroPulse.jl experiments.
 
 Every experiment writes into `experiments/results/<slug>/`:
 
@@ -23,11 +23,11 @@ file's own location, so experiments run correctly from a fresh clone and never
 depend on a local absolute path.
 
 Pass `--out-dir PATH` to a script or `run_all.jl` to redirect the results root.
-The `TEMPORALFOCUS_RESULTS_DIR` environment variable is the lower-level
+The `NEUROPULSE_RESULTS_DIR` environment variable is the lower-level
 equivalent used by child processes and tests.
 
 This module depends only on Julia standard libraries. It does not load
-TemporalFocus, CairoMakie, or any other experiment dependency, so it can be
+NeuroPulse, CairoMakie, or any other experiment dependency, so it can be
 `include`d from anywhere:
 
 ```julia

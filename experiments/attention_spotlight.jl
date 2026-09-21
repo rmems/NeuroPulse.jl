@@ -19,20 +19,20 @@
 #
 # The replay is a pure experiment-side loop over the existing package primitives
 # (`TemporalBuffer`, `prune!`, `spike_attention_continuous`, `normalize_l1!`).
-# No scheduler, event loop, or runtime API is added to TemporalFocus itself.
+# No scheduler, event loop, or runtime API is added to NeuroPulse itself.
 
 using CairoMakie
 using ExperimentUtils
 using Printf
-using TemporalFocus
+using NeuroPulse
 
 # Fail loudly rather than publish results measured against some other copy of
 # the package. The experiments environment is pointed at this checkout with
 # `Pkg.develop(path=".")`; this assertion is the measurement-correctness belt.
-let loaded = realpath(pkgdir(TemporalFocus))
+let loaded = realpath(pkgdir(NeuroPulse))
     expected = realpath(repo_root())
     loaded == expected || error(
-        "TemporalFocus was loaded from $(loaded), not the checkout at $(expected); " *
+        "NeuroPulse was loaded from $(loaded), not the checkout at $(expected); " *
         "refusing to run so results cannot describe a different implementation",
     )
 end
@@ -475,7 +475,7 @@ end
 # ---------------------------------------------------------------------------
 
 function main(cfg = CONFIG)
-    extra_args = prepare_experiment!(TemporalFocus)
+    extra_args = prepare_experiment!(NeuroPulse)
     isempty(extra_args) || error("unexpected arguments: $(join(extra_args, ", "))")
     events = build_stream(cfg)
     steps = replay(cfg, events)

@@ -23,9 +23,9 @@ Artifacts land in `experiments/results/three_regimes/`.
 using CairoMakie
 using ExperimentUtils
 using Printf
-using TemporalFocus
+using NeuroPulse
 
-const _EXPERIMENT_ARGS = prepare_experiment!(TemporalFocus)
+const _EXPERIMENT_ARGS = prepare_experiment!(NeuroPulse)
 isempty(_EXPERIMENT_ARGS) || error("unexpected arguments: $(join(_EXPERIMENT_ARGS, ", "))")
 
 const SLUG = "three_regimes"

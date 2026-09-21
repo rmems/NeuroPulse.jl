@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 # Plot/report layer only; numerical evaluation is independent of CairoMakie.
 module RoutingReport
-using CairoMakie, ExperimentUtils, Statistics, TemporalFocus
+using CairoMakie, ExperimentUtils, Statistics, NeuroPulse
 using ..RoutingSelection
 const RS = RoutingSelection
 

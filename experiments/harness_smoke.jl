@@ -20,7 +20,7 @@ using CairoMakie
 using ExperimentUtils
 using Printf
 using Random
-using TemporalFocus
+using NeuroPulse
 
 const SLUG = "harness-smoke"
 const RNG_SEED = 42
@@ -64,7 +64,7 @@ function _figure(taus::Vector{Float64}, ratios::Vector{Float64}, figure_file::Ab
 end
 
 function main()
-    extra_args = prepare_experiment!(TemporalFocus)
+    extra_args = prepare_experiment!(NeuroPulse)
     isempty(extra_args) || error("unexpected arguments: $(join(extra_args, ", "))")
     rng = MersenneTwister(RNG_SEED)
     source = _make_train(rng)

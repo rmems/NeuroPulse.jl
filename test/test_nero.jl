@@ -1,7 +1,7 @@
 using Test
-using TemporalFocus
+using NeuroPulse
 
-@testset "TemporalFocus" begin
+@testset "NeuroPulse" begin
 
     # ── Generic API tests (preferred) ─────────────────────────────────────────
 
@@ -25,32 +25,32 @@ using TemporalFocus
         @test router.tick_count == 0
         @test router.region_names == ["Region1", "Region2", "Region3", "Region4"]
         @test router.config isa RoutingConfig
-        @test router.config.alpha == TemporalFocus.ALPHA
-        @test router.config.beta == TemporalFocus.BETA
-        @test router.config.gamma == TemporalFocus.GAMMA
-        @test router.config.ema_decay == TemporalFocus.EMA_DECAY
-        @test router.config.min_score == TemporalFocus.MIN_SCORE
-        @test router.config.epsilon == TemporalFocus.EPSILON
+        @test router.config.alpha == NeuroPulse.ALPHA
+        @test router.config.beta == NeuroPulse.BETA
+        @test router.config.gamma == NeuroPulse.GAMMA
+        @test router.config.ema_decay == NeuroPulse.EMA_DECAY
+        @test router.config.min_score == NeuroPulse.MIN_SCORE
+        @test router.config.epsilon == NeuroPulse.EPSILON
     end
 
     @testset "RoutingConfig default matches module constants" begin
         cfg = RoutingConfig()
-        @test cfg.alpha == TemporalFocus.ALPHA
-        @test cfg.beta == TemporalFocus.BETA
-        @test cfg.gamma == TemporalFocus.GAMMA
-        @test cfg.ema_decay == TemporalFocus.EMA_DECAY
-        @test cfg.min_score == TemporalFocus.MIN_SCORE
-        @test cfg.epsilon == TemporalFocus.EPSILON
+        @test cfg.alpha == NeuroPulse.ALPHA
+        @test cfg.beta == NeuroPulse.BETA
+        @test cfg.gamma == NeuroPulse.GAMMA
+        @test cfg.ema_decay == NeuroPulse.EMA_DECAY
+        @test cfg.min_score == NeuroPulse.MIN_SCORE
+        @test cfg.epsilon == NeuroPulse.EPSILON
     end
 
     @testset "RoutingConfig validation" begin
         A, B, G, D, M, E = (
-            TemporalFocus.ALPHA,
-            TemporalFocus.BETA,
-            TemporalFocus.GAMMA,
-            TemporalFocus.EMA_DECAY,
-            TemporalFocus.MIN_SCORE,
-            TemporalFocus.EPSILON,
+            NeuroPulse.ALPHA,
+            NeuroPulse.BETA,
+            NeuroPulse.GAMMA,
+            NeuroPulse.EMA_DECAY,
+            NeuroPulse.MIN_SCORE,
+            NeuroPulse.EPSILON,
         )
         @test_throws ArgumentError RoutingConfig(A, B, G, D, M, 0.0f0)          # epsilon
         @test_throws ArgumentError RoutingConfig(-1.0f0, B, G, D, M, E)         # alpha
@@ -85,11 +85,11 @@ using TemporalFocus
     @testset "update_routing! rejects non-finite derived scores" begin
         # ema_decay=0 keeps EMA at 0; tiny epsilon + large readout can overflow surprise
         cfg = RoutingConfig(
-            TemporalFocus.ALPHA,
-            TemporalFocus.BETA,
-            TemporalFocus.GAMMA,
+            NeuroPulse.ALPHA,
+            NeuroPulse.BETA,
+            NeuroPulse.GAMMA,
             0.0f0,
-            TemporalFocus.MIN_SCORE,
+            NeuroPulse.MIN_SCORE,
             floatmin(Float32),
         )
         router = RegionRouter(
@@ -111,12 +111,12 @@ using TemporalFocus
         # excess ≈ 0 and the uniform fallback branch runs (codecov).
         # Zero inhibition + identical inputs → equal raw scores → uniform softmax.
         cfg = RoutingConfig(
-            TemporalFocus.ALPHA,
-            TemporalFocus.BETA,
-            TemporalFocus.GAMMA,
-            TemporalFocus.EMA_DECAY,
+            NeuroPulse.ALPHA,
+            NeuroPulse.BETA,
+            NeuroPulse.GAMMA,
+            NeuroPulse.EMA_DECAY,
             0.25f0,  # 0.25 * 4 == 1
-            TemporalFocus.EPSILON,
+            NeuroPulse.EPSILON,
         )
         router = RegionRouter(config = cfg, inhibition_matrix = zeros(Float32, 4, 4))
         regions = [ActivityRegion(1.0f0, ones(Float32, 16)) for _ = 1:4]
@@ -126,12 +126,12 @@ using TemporalFocus
 
         # Single-region router: softmax is always 1, floor mass == 1 → same branch.
         cfg1 = RoutingConfig(
-            TemporalFocus.ALPHA,
-            TemporalFocus.BETA,
-            TemporalFocus.GAMMA,
-            TemporalFocus.EMA_DECAY,
+            NeuroPulse.ALPHA,
+            NeuroPulse.BETA,
+            NeuroPulse.GAMMA,
+            NeuroPulse.EMA_DECAY,
             1.0f0,
-            TemporalFocus.EPSILON,
+            NeuroPulse.EPSILON,
         )
         r1 = RegionRouter(
             n_regions = 1,
@@ -148,11 +148,11 @@ using TemporalFocus
         # With momentum snapshot fixed, gamma > 0 changes weights vs gamma = 0
         # once routing_weights diverge from the uniform init.
         base = (
-            TemporalFocus.ALPHA,
-            TemporalFocus.BETA,
-            TemporalFocus.EMA_DECAY,
-            TemporalFocus.MIN_SCORE,
-            TemporalFocus.EPSILON,
+            NeuroPulse.ALPHA,
+            NeuroPulse.BETA,
+            NeuroPulse.EMA_DECAY,
+            NeuroPulse.MIN_SCORE,
+            NeuroPulse.EPSILON,
         )
         r0 = RegionRouter(
             config = RoutingConfig(base[1], base[2], 0.0f0, base[3], base[4], base[5]),
@@ -180,11 +180,11 @@ using TemporalFocus
         cfg_default = RoutingConfig()
         cfg_high_alpha = RoutingConfig(
             0.95f0,
-            TemporalFocus.BETA,
-            TemporalFocus.GAMMA,
-            TemporalFocus.EMA_DECAY,
-            TemporalFocus.MIN_SCORE,
-            TemporalFocus.EPSILON,
+            NeuroPulse.BETA,
+            NeuroPulse.GAMMA,
+            NeuroPulse.EMA_DECAY,
+            NeuroPulse.MIN_SCORE,
+            NeuroPulse.EPSILON,
         )
         router_a = RegionRouter(config = cfg_default)
         router_b = RegionRouter(config = cfg_high_alpha)
@@ -321,9 +321,9 @@ using TemporalFocus
 
         # Routing stays compact (`ActivityRegion` only). Spike types are the
         # Attention surface (ADR 0002), not inputs to `update_routing!`.
-        @test isdefined(TemporalFocus, :SpikeEvent)
-        @test isdefined(TemporalFocus, :SpikeTrain)
-        @test isdefined(TemporalFocus, :TemporalBuffer)
+        @test isdefined(NeuroPulse, :SpikeEvent)
+        @test isdefined(NeuroPulse, :SpikeTrain)
+        @test isdefined(NeuroPulse, :TemporalBuffer)
         @test !hasmethod(update_routing!, Tuple{RegionRouter,SpikeTrain})
         @test_throws MethodError update_routing!(router, SpikeTrain())
     end
@@ -368,7 +368,7 @@ using TemporalFocus
             update_routing!(router, regions)
         end
         for r in router.routing_weights
-            @test r >= TemporalFocus.MIN_SCORE
+            @test r >= NeuroPulse.MIN_SCORE
         end
     end
 
@@ -414,33 +414,33 @@ using TemporalFocus
     end
 
     @testset "NERO_* constant aliases exist" begin
-        @test TemporalFocus.NERO_ALPHA === TemporalFocus.ALPHA
-        @test TemporalFocus.NERO_BETA === TemporalFocus.BETA
-        @test TemporalFocus.NERO_GAMMA === TemporalFocus.GAMMA
-        @test TemporalFocus.NERO_EMA_DECAY === TemporalFocus.EMA_DECAY
-        @test TemporalFocus.NERO_MIN_SCORE === TemporalFocus.MIN_SCORE
-        @test TemporalFocus.NERO_EPSILON === TemporalFocus.EPSILON
-        @test TemporalFocus.NERO_DEFAULT_LOBE_NAMES === TemporalFocus.DEFAULT_REGION_NAMES
-        @test TemporalFocus.NERO_INHIBIT === TemporalFocus.INHIBIT
+        @test NeuroPulse.NERO_ALPHA === NeuroPulse.ALPHA
+        @test NeuroPulse.NERO_BETA === NeuroPulse.BETA
+        @test NeuroPulse.NERO_GAMMA === NeuroPulse.GAMMA
+        @test NeuroPulse.NERO_EMA_DECAY === NeuroPulse.EMA_DECAY
+        @test NeuroPulse.NERO_MIN_SCORE === NeuroPulse.MIN_SCORE
+        @test NeuroPulse.NERO_EPSILON === NeuroPulse.EPSILON
+        @test NeuroPulse.NERO_DEFAULT_LOBE_NAMES === NeuroPulse.DEFAULT_REGION_NAMES
+        @test NeuroPulse.NERO_INHIBIT === NeuroPulse.INHIBIT
     end
 
     # ── Configurable inhibition matrix (LIM-229 / GH#23) ─────────────────────
 
     @testset "inhibition_matrix: NERO_INHIBIT === INHIBIT" begin
-        @test TemporalFocus.NERO_INHIBIT === TemporalFocus.INHIBIT
+        @test NeuroPulse.NERO_INHIBIT === NeuroPulse.INHIBIT
     end
 
     @testset "inhibition_matrix: n=4 default equals historical INHIBIT" begin
         router = RegionRouter()
         @test hasproperty(router, :inhibition_matrix)
         @test size(router.inhibition_matrix) == (4, 4)
-        @test router.inhibition_matrix == TemporalFocus.INHIBIT
+        @test router.inhibition_matrix == NeuroPulse.INHIBIT
         @test eltype(router.inhibition_matrix) == Float32
     end
 
     @testset "inhibition_matrix: n=3 default equals INHIBIT[1:3,1:3]" begin
         router = RegionRouter(n_regions = 3, n_out = 8)
-        expected = TemporalFocus.INHIBIT[1:3, 1:3]
+        expected = NeuroPulse.INHIBIT[1:3, 1:3]
         @test size(router.inhibition_matrix) == (3, 3)
         @test router.inhibition_matrix == expected
         @test eltype(router.inhibition_matrix) == Float32
@@ -490,7 +490,7 @@ using TemporalFocus
             n_regions = n,
             n_out = n_out,
             region_names = names,
-            inhibition_matrix = TemporalFocus.INHIBIT,
+            inhibition_matrix = NeuroPulse.INHIBIT,
         )
         for _ = 1:10
             update_routing!(r_zero, regions)
@@ -531,11 +531,11 @@ using TemporalFocus
     @testset "save_state / load_state! round-trip" begin
         custom_cfg = RoutingConfig(
             0.7f0,
-            TemporalFocus.BETA,
-            TemporalFocus.GAMMA,
-            TemporalFocus.EMA_DECAY,
-            TemporalFocus.MIN_SCORE,
-            TemporalFocus.EPSILON,
+            NeuroPulse.BETA,
+            NeuroPulse.GAMMA,
+            NeuroPulse.EMA_DECAY,
+            NeuroPulse.MIN_SCORE,
+            NeuroPulse.EPSILON,
         )
         router = RegionRouter(
             n_regions = 3,

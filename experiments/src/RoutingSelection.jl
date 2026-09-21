@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 """Experiment-only causal selection study; no package API additions."""
 module RoutingSelection
-using TemporalFocus, Random, Statistics, TOML
+using NeuroPulse, Random, Statistics, TOML
 include("SpotlightScenario.jl")
 using .SpotlightScenario
 export Observation, SelectionState, advance!, selection_snapshot, restore_selection!

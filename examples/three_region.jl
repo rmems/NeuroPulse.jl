@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
-using TemporalFocus
+using NeuroPulse
 
 router = RegionRouter(
     n_regions = 3,

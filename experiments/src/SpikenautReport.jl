@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 module SpikenautReport
-using CairoMakie, ExperimentUtils, TemporalFocus
+using CairoMakie, ExperimentUtils, NeuroPulse
 using ..SpikenautReplay
 const SR = SpikenautReplay
 function named_csv(slug,name,rows)
