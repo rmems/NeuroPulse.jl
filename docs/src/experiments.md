@@ -23,6 +23,18 @@ this NeuroPulse checkout. A run contains `config.toml`, `metrics.csv`,
 `figure.png`, `summary.md`, `provenance.toml`, and snapshots of the exact
 resolved Project and Manifest.
 
+## Download the recorded run
+
+[Download the characterization evidence bundle](assets/experiments/characterization-evidence.tar.gz)
+contains all seven completed runs: configurations, numerical metrics, figures,
+interpretations, source/input hashes, and resolved environment snapshots.
+These runs were generated from clean NeuroPulse commit `d121fa7` on Julia
+1.12.7; subsequent root-test formatting does not alter their recorded code.
+
+Archive SHA-256: `ded6513c25751d94b3f733716d82225d8b45a3d74255e41d69e4735e45c03a2c`. The archived environment records the original
+local checkout path; follow the setup above with `Pkg.develop(path=".")` to
+bind the canonical UUID to your checkout when reproducing.
+
 ## Controlled findings
 
 | Experiment | Controlled question | Observed verdict |
