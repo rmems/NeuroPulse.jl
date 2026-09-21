@@ -179,3 +179,44 @@ The harness and six characterization scenes were ported from
 decision rules, and contrary findings were retained. See `PORTED_FROM.toml` for
 the file manifest. The source and this port are available under the same
 `MIT OR Apache-2.0` license terms.
+
+## Controlled attention plus routing
+
+```bash
+julia +1.12.7 --project=experiments experiments/routing_selection.jl \
+  --config experiments/configs/routing_selection.toml --out-dir experiments/results
+julia +1.12.7 --project=experiments experiments/test/runtests.jl
+```
+
+The fixed full-factorial configuration evaluates 243 scenes, each with the same
+four targets and timing from the spotlight replay. Eight methods share every
+scene and availability mask: uniform, normalized occupied-bin firing rate,
+timing-agnostic attention, temporal attention, temporal attention with routing,
+and router ablations removing surprise, momentum, or inhibition. Equal 0.02
+off-diagonal inhibition is used throughout; the diagonal is zero.
+
+The runtime takes only unlabeled spike observations and sample availability.
+Missing intervals discard arrivals and hold state; observed silence remains an
+explicit no-evidence observation. No-evidence coverage is measured separately
+for each method's consumed inputs. The uniform comparator is data-independent.
+The grid sweeps background amplitude, previous-target activity duration,
+independent event jitter, and observation loss, with three declared seeds.
+Target labels enter only generation and evaluation.
+
+A handoff is confirmed at the fifth consecutive observed correct sample.
+Ties fail strict top-1; missing samples break handoff streaks. Every switch is
+retained, with blank raw delay plus `missed=true` on failure; the comparison
+uses phase-length-capped delays. The default result is **unsupported** for
+routing benefit relative to temporal attention: the router loses target share
+and accuracy and misses more handoffs. The no-surprise ablation improves
+accuracy but spreads weights broadly, so it also fails the joint rule. See the
+[gallery](../docs/src/experiments.md) for the measured table and figure.
+
+`metrics.csv` contains scene × method rows; `traces.csv` contains sample-level
+weights, winners and evidence; `handoffs.csv` retains all successes/failures;
+`paired.csv` holds candidate-minus-temporal differences; `aggregate.csv` holds
+mechanical descriptive verdicts. `events.csv` and `masks.csv` reproduce inputs,
+while `config.toml` records the entire grid, effective router configurations,
+and missing/no-evidence/scoring policies. Provenance hashes cover these inputs,
+source files, and the resolved environment. These synthetic results are not a
+claim about deployed Spikenaut, learning quality, or runtime efficiency.

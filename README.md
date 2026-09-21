@@ -121,7 +121,8 @@ julia --project=. examples/three_region.jl
 
 ## Controlled experiment gallery
 
-Six deterministic, spike-native characterization experiments now live in the
+Six deterministic, spike-native characterization experiments and a controlled
+attention-plus-routing study now live in the
 isolated [`experiments/`](experiments/) environment. They cover coincidence
 weighting and windowing across temporal scales, kernel regimes, distractor
 load, timestamp jitter, replayed focus movement, and the `τ × window` memory

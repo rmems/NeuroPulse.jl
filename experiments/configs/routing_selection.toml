@@ -1,0 +1,44 @@
+# Fixed before evaluation: full factorial, every seed paired across all methods.
+[scenario]
+n_neurons = 6
+buffer_window = 0.35
+tau = 0.10
+sample_dt = 0.02
+t_end = 4.80
+phase_length = 1.20
+phase_neurons = [2, 5, 3, 6]
+bursts_per_phase = 7
+burst_start = 0.10
+burst_spacing = 0.15
+pattern_lag = 0.03
+pattern_value = 1.0
+background_period = 0.15
+background_lag = 0.07
+background_value = 0.35
+jitter = 0.0
+min_hold_steps = 5
+
+[router]
+alpha = 0.50
+beta = 0.35
+gamma = 0.15
+ema_decay = 0.05
+min_score = 0.01
+epsilon = 0.000001
+inhibition = 0.02
+
+[grid]
+strength = [0.35, 1.0, 2.0]
+stale = [0.0, 0.25, 0.60]
+jitter = [0.0, 0.012, 0.06]
+missing = [0.0, 0.15, 0.40]
+seeds = [11, 29, 47]
+
+[decision]
+baseline = "temporal_attention"
+candidate = "temporal_router"
+minimum_target_share_gain = 0.01
+minimum_strict_top1_gain = 0.02
+# Paired grid means; supported requires both thresholds and no increase in
+# missed handoffs or phase-capped delay. Nonpositive share/accuracy gain or
+# increased misses/delay is unsupported; remaining positive gains inconclusive.
