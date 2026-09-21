@@ -1,0 +1,19 @@
+test/experiment_harness.jl
+  s_5d6a82ba7e6c6b::t_af5916dbc998da 16-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "5682403821d71c1c44ea93b05fbcfdbb861689d3",
+  "prompts": {},
+  "sessions": {
+    "s_5d6a82ba7e6c6b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0c1c8-7e12-7580-be2e-0ccdb6d9027b",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Raul Cardenas Montoya <montoyaraul34@gmail.com>"
+    }
+  }
+}
