@@ -1,0 +1,12 @@
+# Declared sensitivity grid; units are replay ticks, never seconds.
+windows_ticks = [1, 2, 4, 8]
+tau_ticks = 2.0
+
+[router]
+alpha = 0.50
+beta = 0.35
+gamma = 0.15
+ema_decay = 0.05
+min_score = 0.01
+epsilon = 0.000001
+inhibition = 0.02
