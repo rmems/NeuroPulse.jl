@@ -1,5 +1,7 @@
 # Julia
 /Manifest.toml
+/experiments/Manifest.toml
+/experiments/results/
 *.jl.cov
 *.jl.*.cov
 

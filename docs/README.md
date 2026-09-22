@@ -7,6 +7,7 @@ Documenter builds from `docs/src/` via `docs/make.jl` and deploys to GitHub Page
 - `src/overview.md` — scope, architecture, and intended usage
 - `src/api.md` — exported API notes and current limitations (preferred API docs)
 - `src/interop.md` — frozen data-shape / interop contract (LIM-228 / GH#14)
+- `src/experiments.md` — controlled characterization gallery and reproduction contract
 - `src/roadmap.md` — candid status and next cleanup targets
 
 ```bash

@@ -119,6 +119,32 @@ Run any example from the repository root:
 julia --project=. examples/three_region.jl
 ```
 
+## Controlled experiment gallery
+
+Six deterministic, spike-native characterization experiments now live in the
+isolated [`experiments/`](experiments/) environment. They cover coincidence
+weighting and windowing across temporal scales, kernel regimes, distractor
+load, timestamp jitter, replayed focus movement, and the `τ × window` memory
+surface. These are controlled synthetic scenes that characterize the current
+attention kernels; they are not evidence from a deployed Spikenaut trace and
+do not establish a downstream training or runtime benefit.
+
+From the repository root:
+
+```bash
+julia +1.12.7 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+julia +1.12.7 --project=experiments experiments/run_all.jl --out-dir experiments/results
+```
+
+Give concurrent runs distinct `--out-dir` roots so they do not overwrite one
+another's artifacts.
+
+Each run writes deterministic `config.toml` and `metrics.csv`, a `figure.png`,
+and `summary.md`, plus SHA-256 provenance and snapshots of the resolved
+experiment Project and Manifest. See the [experiment gallery](docs/src/experiments.md)
+for the questions, observed verdicts, and the boundary between this evidence
+and later real-trace work.
+
 ### Legacy API
 
 The old NERO/lobe names still work as backward-compatible aliases:
@@ -157,11 +183,15 @@ The raw scores are then:
 ActivityRegion(last_spike_rate::Float32, output::Vector{Float32})
 ActivityRegion(n_out::Int)
 
-RegionRouter(; n_regions=4, n_out=16, region_names=DEFAULT_REGION_NAMES)
+RoutingConfig(alpha, beta, gamma, ema_decay, min_score, epsilon)
+RegionRouter(; n_regions=4, n_out=16, region_names=DEFAULT_REGION_NAMES,
+             inhibition_matrix=nothing, config=RoutingConfig())
 
 update_routing!(router::RegionRouter, regions::Vector{ActivityRegion})
 routing_diagnostics(router::RegionRouter)
 adapt_leak!(leak_rate::Ref{Float32}, stress::Real; min_leak=0.01f0, max_leak=0.25f0, stress_adapter=nothing)
+save_state(router::RegionRouter)
+load_state!(router::RegionRouter, snapshot)
 
 SpikeEvent(neuron_id, t, value=1.0f0)
 SpikeTrain(events=SpikeEvent[])
@@ -171,17 +201,25 @@ spike_attention_temporal(source, context, readout; τ=1.0f0)
 spike_attention_continuous(source_buffer, context_buffer, readout; τ=1.0f0)
 ```
 
-Legacy aliases (`LobeState`, `NeroOrchestrator`, `update_relevance!`, `nero_diagnostics`)
-resolve to the same types/functions; use the preferred names above for new code.
+Legacy aliases (`LobeState`, `NeroOrchestrator`, `update_relevance!`,
+`nero_diagnostics`, and mutating `load_state`) resolve to the same
+types/functions; use the preferred names above for new code.
 
 ## Default assumptions and current limitations
 
 A few defaults still reflect the package's original extraction context:
 
 - the default region names are `Region1`–`Region4` (historical 4-component example layout)
-- the default inhibition matrix is tuned for a 4-component example layout
+- for up to four regions, the default inhibition matrix preserves the historical
+  example layout; larger routers receive a generated distance-decaying matrix,
+  and callers may provide any validated `n_regions × n_regions` matrix
 - `adapt_leak!` default stress scale is percent-like in `[0, 100]` (custom `stress_adapter` allowed)
-- the package currently exposes NERO terminology directly in type/function names
+- NERO terminology remains available as backward-compatible aliases, while the
+  preferred API uses `ActivityRegion` / `RegionRouter` naming
+
+Per-router scoring is configurable through `RoutingConfig`; module constants
+serve as defaults. `save_state` and `load_state!` round-trip mutable routing
+state and configuration while rejecting structurally incompatible targets.
 
 Those defaults are serviceable, but they are not the final abstraction boundary.
 

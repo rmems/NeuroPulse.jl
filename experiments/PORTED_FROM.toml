@@ -1,0 +1,16 @@
+source_repository = "https://github.com/rmems/TemporalFocus.jl"
+source_commit = "c0b51e2f7d473411390dc4a7667fd161326c6492"
+source_author = "rmems and TemporalFocus.jl contributors"
+license = "MIT OR Apache-2.0"
+
+files = [
+  "temporal_lens.jl",
+  "three_regimes.jl",
+  "focus_under_fire.jl",
+  "jitter_test.jl",
+  "attention_spotlight.jl",
+  "memory_gate.jl",
+  "harness_smoke.jl",
+  "run_all.jl",
+  "src/ExperimentUtils.jl",
+]
