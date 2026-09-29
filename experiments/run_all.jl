@@ -50,6 +50,7 @@ const ORDERED_EXPERIMENTS = [
     "jitter_test.jl",
     "attention_spotlight.jl",
     "memory_gate.jl",
+    "routing_selection.jl",
 ]
 
 "Every experiment script present in `experiments/`, in deterministic run order."
