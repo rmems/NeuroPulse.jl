@@ -2,10 +2,10 @@
 # Ported from rmems/TemporalFocus.jl @ c0b51e2f7d473411390dc4a7667fd161326c6492.
 
 using ExperimentUtils
-using TemporalFocus
+using NeuroPulse
 
 """
-TemporalFocus.jl experiment runner.
+NeuroPulse.jl experiment runner.
 
 Runs every experiment script that is present in `experiments/`, in a
 deterministic order, each in its own Julia process so one failure cannot leave
@@ -108,7 +108,7 @@ function _run_script(name::AbstractString)
 end
 
 function main(args::Vector{String} = String[])
-    args = prepare_experiment!(TemporalFocus, args)
+    args = prepare_experiment!(NeuroPulse, args)
     if "--help" in args || "-h" in args
         print(USAGE)
         return 0
@@ -131,7 +131,7 @@ function main(args::Vector{String} = String[])
 
     selected = _select(available, args)
 
-    println("NeuroPulse.jl experiments (module TemporalFocus)")
+    println("NeuroPulse.jl experiments (module NeuroPulse)")
     println("  julia    ", VERSION)
     println("  project  ", joinpath(EXPERIMENT_DIR, "Project.toml"))
     println("  running  ", length(selected), " script(s)")

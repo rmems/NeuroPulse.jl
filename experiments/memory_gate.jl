@@ -24,19 +24,19 @@ using ExperimentUtils
 using Printf
 using Random
 using Statistics
-using TemporalFocus
+using NeuroPulse
 
-const _EXPERIMENT_ARGS = prepare_experiment!(TemporalFocus)
+const _EXPERIMENT_ARGS = prepare_experiment!(NeuroPulse)
 isempty(_EXPERIMENT_ARGS) || error("unexpected arguments: $(join(_EXPERIMENT_ARGS, ", "))")
 using TOML
 
 # Fail loudly rather than publish results measured against some other copy of
 # the package. The experiments environment is pointed at this checkout with
 # `Pkg.develop(path=".")`; this assertion is the measurement-correctness belt.
-let loaded = realpath(pkgdir(TemporalFocus))
+let loaded = realpath(pkgdir(NeuroPulse))
     expected = realpath(repo_root())
     loaded == expected || error(
-        "TemporalFocus was loaded from $(loaded), not the checkout at $(expected); " *
+        "NeuroPulse was loaded from $(loaded), not the checkout at $(expected); " *
         "refusing to run so results cannot describe a different implementation",
     )
 end
@@ -47,7 +47,7 @@ const SLUG = "memory_gate"
 # Configuration
 # ---------------------------------------------------------------------------
 #
-# Times are in milliseconds. TemporalFocus is unit-agnostic (all temporal
+# Times are in milliseconds. NeuroPulse is unit-agnostic (all temporal
 # quantities are plain `Float32`); ms is chosen only to keep the numbers
 # readable. Nothing in the experiment depends on the unit.
 
@@ -315,7 +315,7 @@ config = Dict{String,Any}(
     "cairomakie_compat" => CAIROMAKIE_COMPAT,
     "deterministic" => true,
     "random_draws" => false,
-    "time_unit" => "ms (nominal; TemporalFocus is unit-agnostic Float32)",
+    "time_unit" => "ms (nominal; NeuroPulse is unit-agnostic Float32)",
     "julia_version" => string(VERSION),
     "kernel" => "spike_attention_continuous",
     "readout" => "identity (transparent)",
@@ -657,7 +657,7 @@ competitor / unrelated masses are measured by re-running the **real kernel** on 
 sub-scenes; the script asserts that the parts sum back to the full-scene total at every
 one of the $(n_cond) conditions.
 
-Times are nominal milliseconds. TemporalFocus is unit-agnostic (`Float32` throughout);
+Times are nominal milliseconds. NeuroPulse is unit-agnostic (`Float32` throughout);
 no unit semantics are attached, and in particular none are financial.
 
 ## Sweep

@@ -5,7 +5,7 @@
 
 ## Identity
 
-You are an AI coding assistant working on NeuroPulse.jl (`Project.toml` name: `TemporalFocus`). Act as a careful, concise Julia developer for a spiking-neural-network relevance-routing package.
+You are an AI coding assistant working on NeuroPulse.jl (`Project.toml` name: `NeuroPulse`). Act as a careful, concise Julia developer for a spiking-neural-network relevance-routing package.
 
 ## User context
 
@@ -62,7 +62,7 @@ You are an AI coding assistant working on NeuroPulse.jl (`Project.toml` name: `T
 
 ## Environment notes
 
-- This directory's `Project.toml` declares `name = "TemporalFocus"`. This is a rename and is distinct from the sibling `TemporalFocus.jl` repo.
+- This directory's `Project.toml` declares `name = "NeuroPulse"`. The sibling `TemporalFocus.jl` repository remains the historical source of the imported attention surface.
 - When running Julia in this repo, use the `--project=.` environment.
 - If you must use a shared environment, ask the user first.
 - Then verify the active project resolves to this repo's `Project.toml` so the two packages do not collide.

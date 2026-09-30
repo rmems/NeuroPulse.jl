@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
-using CairoMakie, ExperimentUtils, TemporalFocus, TOML
+using CairoMakie, ExperimentUtils, NeuroPulse, TOML
 include(joinpath(@__DIR__,"src","RoutingSelection.jl"))
 include(joinpath(@__DIR__,"src","RoutingReport.jl"))
 using .RoutingSelection
 
 function main(args=copy(ARGS))
-    args = prepare_experiment!(TemporalFocus,args)
+    args = prepare_experiment!(NeuroPulse,args)
     config_path = joinpath(@__DIR__,"configs","routing_selection.toml")
     if !isempty(args)
         length(args) == 2 && args[1] == "--config" || throw(ArgumentError("usage: routing_selection.jl [--config TOML] [--out-dir PATH]"))

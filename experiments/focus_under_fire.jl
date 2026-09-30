@@ -39,15 +39,15 @@ using ExperimentUtils
 using Printf
 using Random
 using Statistics
-using TemporalFocus
+using NeuroPulse
 
 # Fail loudly rather than publish results measured against some other copy of
 # the package. The experiments environment is pointed at this checkout with
 # `Pkg.develop(path=".")`; this assertion is the measurement-correctness belt.
-let loaded = realpath(pkgdir(TemporalFocus))
+let loaded = realpath(pkgdir(NeuroPulse))
     expected = realpath(repo_root())
     loaded == expected || error(
-        "TemporalFocus was loaded from $(loaded), not the checkout at $(expected); " *
+        "NeuroPulse was loaded from $(loaded), not the checkout at $(expected); " *
         "refusing to run so results cannot describe a different implementation",
     )
 end
@@ -840,13 +840,13 @@ function _build_summary(rows, agg, seps, figures, clean::Condition, noisy::Condi
     println(io, "julia         $(VERSION)")
     println(io, "CairoMakie    $(pkgversion(CairoMakie))")
     println(io, "Makie         $(pkgversion(CairoMakie.Makie))")
-    println(io, "TemporalFocus $(pkgversion(TemporalFocus))")
+    println(io, "NeuroPulse $(pkgversion(NeuroPulse))")
     println(io, "```")
     println(io)
     println(io, "`experiments/Project.toml` declares a CairoMakie compatibility range so `Pkg`")
     println(io, "can select a release for the active Julia version. `experiments/Manifest.toml`")
     println(io, "and `experiments/results/` are git-ignored. A different renderer may re-render")
-    println(io, "the figures; the numbers in `metrics.csv` depend only on TemporalFocus and the")
+    println(io, "the figures; the numbers in `metrics.csv` depend only on NeuroPulse and the")
     println(io, "recorded seeds, and are not affected by the plotting stack.")
 
     return String(take!(io))
@@ -865,7 +865,7 @@ function _build_config(clean::Condition, noisy::Condition, scene_seed::Integer)
             "julia" => string(VERSION),
             "CairoMakie" => string(pkgversion(CairoMakie)),
             "Makie" => string(pkgversion(CairoMakie.Makie)),
-            "TemporalFocus" => string(pkgversion(TemporalFocus)),
+            "NeuroPulse" => string(pkgversion(NeuroPulse)),
         ),
         "focus_retention_definition" => FOCUS_RETENTION_DEFINITION,
         "seeds" => SEEDS,
@@ -920,7 +920,7 @@ end
 # ---------------------------------------------------------------------------
 
 function main()
-    extra_args = prepare_experiment!(TemporalFocus)
+    extra_args = prepare_experiment!(NeuroPulse)
     isempty(extra_args) || error("unexpected arguments: $(join(extra_args, ", "))")
     CairoMakie.activate!(; type = "png")
 
