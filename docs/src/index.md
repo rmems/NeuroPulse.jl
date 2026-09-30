@@ -50,7 +50,8 @@ router.routing_weights
 ## Package
 
 The public repository is **[NeuroPulse.jl](https://github.com/rmems/NeuroPulse.jl)**.
-The loadable Julia module is **NeuroPulse** (UUID `b7e4c3f2-…`). Existing code
+The loadable Julia module is **NeuroPulse** (UUID
+`b7e4c3f2-1d2e-4a5b-8c9d-0e1f2a3b4c5e`). Existing code
 must replace `using TemporalFocus` with `using NeuroPulse`; the old package import
 is not provided as an alias.
 
