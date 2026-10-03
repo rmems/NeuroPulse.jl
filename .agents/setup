@@ -8,7 +8,7 @@
 # Installs only what this repo's CI and manifests need:
 #   - apt: curl, ca-certificates
 #   - juliaup 1.12 [default]
-#   - Pkg.instantiate()
+#   - root and documentation project dependencies
 #   - tool directories exposed to later shells (/etc/profile.d + /usr/local/bin links)
 #
 # It ends with a dependency fetch/prebuild, not a test run.
@@ -52,6 +52,7 @@ juliaup default "$JULIA_CHANNEL"
 
 # --- Julia dependencies ---
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=docs -e 'using Pkg; Pkg.develop(path=pwd()); Pkg.instantiate()'
 
 # --- Expose the tools to later shells ---
 # The PATH exports above last only for this script; Amp starts the agent's shell
