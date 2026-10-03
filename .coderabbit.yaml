@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
-# Draft CodeRabbit config for rmems/NeuroPulse.jl (generated locally, not pushed).
+# CodeRabbit review config for rmems/NeuroPulse.jl.
 language: en-US
 reviews:
   profile: chill
@@ -10,15 +10,38 @@ reviews:
     drafts: false
   path_instructions:
   - path: '{src,test}/**/*.jl'
-    instructions: Julia package code. `[compat] julia = "1.9"`; CI runs Julia 1.12 (agent/CI practice is 1.12-only). Do not use Base/stdlib APIs newer than the compat floor without raising it. Review for type stability in hot paths (concrete struct field types, no abstractly typed containers, no non-`const` globals, no `Any`-returning branches), avoidable allocations in inner loops, and changes to exported API. Code must pass the JuliaFormatter v2 format check.
+    instructions: |-
+      Julia package code. `[compat] julia = "1.9"`; CI runs Julia 1.12
+      (agent/CI practice is 1.12-only). Do not use Base/stdlib APIs newer than
+      the compat floor without raising it. Review for type stability in hot
+      paths (concrete struct field types, no abstractly typed containers, no
+      non-`const` globals, no `Any`-returning branches), avoidable allocations
+      in inner loops, and changes to exported API. Code must pass the
+      JuliaFormatter v2 format check.
   - path: experiments/**
-    instructions: Research experiments with pinned fixtures; changes to `experiments/fixtures/**` must be explained by the experiment code in the same PR.
+    instructions: |-
+      Research experiments with pinned fixtures; changes to
+      `experiments/fixtures/**` must be explained by the experiment code in the
+      same PR.
   - path: '**/Project.toml'
-    instructions: 'Julia Project.toml. New `[deps]` entries should get a `[compat]` bound; flag widened or dropped bounds and any UUID change (UUIDs are immutable once registered). AGENTS.md: changes to `Project.toml`/`Manifest.toml` need explicit owner approval, so call out any such change in the review summary.'
+    instructions: |-
+      Julia Project.toml. New `[deps]` entries should get a `[compat]` bound;
+      flag widened or dropped bounds and any UUID change (UUIDs are immutable
+      once registered). AGENTS.md: changes to `Project.toml`/`Manifest.toml`
+      need explicit owner approval, so call out any such change in the review
+      summary.
   - path: '**/Manifest.toml'
-    instructions: Resolver output committed on purpose. Do not review it line by line; only flag a changed `julia_version`, churn that is not explained by a Project.toml change, or resolved versions that violate `[compat]`.
+    instructions: |-
+      Resolver output committed on purpose. Do not review it line by line;
+      only flag a changed `julia_version`, churn that is not explained by a
+      Project.toml change, or resolved versions that violate `[compat]`.
   - path: .github/workflows/**
-    instructions: 'GitHub Actions workflows. Keep `permissions:` least-privilege and job commands in sync with the local gates documented in the repo. Most `uses:` are pinned to full commit SHAs; prefer SHA pins for new or bumped actions. AGENTS.md: workflow changes need explicit owner approval; call them out.'
+    instructions: |-
+      GitHub Actions workflows. Keep `permissions:` least-privilege and job
+      commands in sync with the local gates documented in the repo. Most
+      `uses:` are pinned to full commit SHAs; prefer SHA pins for new or bumped
+      actions. AGENTS.md: workflow changes need explicit owner approval; call
+      them out.
   tools:
     actionlint:
       enabled: true
