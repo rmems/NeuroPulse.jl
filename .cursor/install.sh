@@ -53,8 +53,10 @@ fi
 juliaup default "$JULIA_CHANNEL"
 
 # --- Julia dependencies ---
+# docs/Manifest.toml already tracks NeuroPulse with path = "..".
+# develop(path=pwd()) records that path as absolute and rewrites the tracked manifest.
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
-julia --project=docs -e 'using Pkg; Pkg.develop(path=pwd()); Pkg.instantiate()'
+julia --project=docs -e 'using Pkg; Pkg.instantiate()'
 
 # --- Expose the tools to later shells ---
 # The PATH exports above last only for this script; Cursor starts the agent's shells
