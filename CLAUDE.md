@@ -14,7 +14,7 @@ Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (in
 |---|---|
 | `julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.test()'` | verified (245 + 2081 + 10 + 5 tests passed) |
 | `julia --project=. examples/three_region.jl` (also `six_region.jl`, `reservoir_integration.jl`) | verified (each exits 0) |
-| `julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'` then `julia --project=docs docs/make.jl` | verified (build succeeds; running it rewrites tracked `docs/Manifest.toml`, so `git checkout docs/Manifest.toml` afterwards) |
+| `julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'` then `julia --project=docs docs/make.jl` | verified (build succeeds; `docs/Manifest.toml` is tracked and already points at `..`, and this run rewrote it. Check `git diff docs/Manifest.toml` and revert only the generated change, not any edits you made yourself) |
 | `julia --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'` | not run (instantiate did not finish here; the CairoMakie tree filled the disk) |
 | `julia --project=experiments experiments/test/runtests.jl`, `experiments/run_all.jl [--list]` | not run (need the experiments environment above; `experiments/README.md` shows `+1.12.7` channel syntax) |
 | JuliaFormatter 2 check on `src/` and `test/` (`format.yml`) | not run (JuliaFormatter not installed; no `.JuliaFormatter.toml`, so defaults apply) |
