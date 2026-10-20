@@ -269,7 +269,8 @@ end
 Compute relevance scores for all regions from the current activity states.
 `regions` is a `Vector{ActivityRegion}` — one per region. Throws `ArgumentError` if
 `length(regions) != router.n_regions`, if any region's `output` length is not
-`router.n_out`, or if any `last_spike_rate` is outside `[0, 1]`.
+`router.n_out`, if any `last_spike_rate` is outside `[0, 1]`, or if any spike
+rate, readout value, surprise, raw score, or inhibited score is `NaN` or `Inf`.
 
 The result is stored in `router.routing_weights` (n_regions × Float32).
 

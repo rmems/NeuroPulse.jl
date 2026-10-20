@@ -91,6 +91,12 @@ Base.isempty(buffer::TemporalBuffer) = isempty(buffer.events)
 Remove events from `buffer` that fall outside the retention window.
 
 Keeps only events satisfying `(current_time - event.t) <= buffer.window`.
+The comparison is inclusive: an event whose age equals `buffer.window`
+exactly is retained. An empty `events` vector is a no-op. When every event
+time and `current_time` are zero, ages are zero, so all events are kept
+whenever `buffer.window >= 0`. A zero window keeps only events whose age
+is exactly zero.
+
 Mutates `buffer.events` in place and returns `buffer`.
 
 # Arguments
@@ -99,9 +105,20 @@ Mutates `buffer.events` in place and returns `buffer`.
 
 # Returns
 - the same `buffer` after pruning
+
+# Throws
+- `ArgumentError` if `current_time`, `buffer.window`, or any `event.t` is
+  `NaN` or `Inf`
 """
 function prune!(buffer::TemporalBuffer, current_time::Real)
     current_time_f32 = Float32(current_time)
+    isfinite(current_time_f32) ||
+        throw(ArgumentError("current_time must be finite, got $current_time_f32"))
+    isfinite(buffer.window) ||
+        throw(ArgumentError("buffer.window must be finite, got $(buffer.window)"))
+    for event in buffer.events
+        isfinite(event.t) || throw(ArgumentError("event.t must be finite, got $(event.t)"))
+    end
     filter!(event -> (current_time_f32 - event.t) <= buffer.window, buffer.events)
     return buffer
 end
