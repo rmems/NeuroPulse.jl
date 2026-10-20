@@ -116,9 +116,8 @@ function prune!(buffer::TemporalBuffer, current_time::Real)
     isfinite(current_time) ||
         throw(ArgumentError("current_time must be finite, got $current_time"))
     current_time_f32 = Float32(current_time)
-    isfinite(current_time_f32) || throw(
-        ArgumentError("current_time overflows Float32, got $current_time"),
-    )
+    isfinite(current_time_f32) ||
+        throw(ArgumentError("current_time overflows Float32, got $current_time"))
     isnan(buffer.window) &&
         throw(ArgumentError("buffer.window must not be NaN, got $(buffer.window)"))
     for event in buffer.events

@@ -35,10 +35,8 @@ function spike_attention_continuous(
     τ_f32 = Float32(τ)
     τ_f32 > 0.0f0 || throw(ArgumentError("τ must be positive"))
     n = _check_positive_rows(readout)
-    isnan(source_buffer.window) &&
-        throw(ArgumentError("source window must not be NaN"))
-    isnan(context_buffer.window) &&
-        throw(ArgumentError("context window must not be NaN"))
+    isnan(source_buffer.window) && throw(ArgumentError("source window must not be NaN"))
+    isnan(context_buffer.window) && throw(ArgumentError("context window must not be NaN"))
     _require_finite_events(source_buffer.events)
     _require_finite_events(context_buffer.events)
     attention = zeros(Float32, n)
