@@ -82,6 +82,34 @@ using NeuroPulse
         )
     end
 
+    @testset "update_routing! rejects NaN or Inf spike rates and readouts" begin
+        router = RegionRouter(
+            n_regions = 2,
+            n_out = 4,
+            region_names = ["A", "B"],
+            inhibition_matrix = zeros(Float32, 2, 2),
+        )
+        finite_out = zeros(Float32, 4)
+        @test_throws ArgumentError update_routing!(
+            router,
+            [ActivityRegion(NaN32, finite_out), ActivityRegion(0.0f0, finite_out)],
+        )
+        @test_throws ArgumentError update_routing!(
+            router,
+            [ActivityRegion(Inf32, finite_out), ActivityRegion(0.0f0, finite_out)],
+        )
+        nan_out = Float32[1, 0, NaN32, 0]
+        @test_throws ArgumentError update_routing!(
+            router,
+            [ActivityRegion(0.5f0, nan_out), ActivityRegion(0.0f0, finite_out)],
+        )
+        inf_out = Float32[1, Inf32, 0, 0]
+        @test_throws ArgumentError update_routing!(
+            router,
+            [ActivityRegion(0.5f0, inf_out), ActivityRegion(0.0f0, finite_out)],
+        )
+    end
+
     @testset "update_routing! rejects non-finite derived scores" begin
         # ema_decay=0 keeps EMA at 0; tiny epsilon + large readout can overflow surprise
         cfg = RoutingConfig(
