@@ -95,7 +95,8 @@ The comparison is inclusive: an event whose age equals `buffer.window`
 exactly is retained. An empty `events` vector is a no-op. When every event
 time and `current_time` are zero, ages are zero, so all events are kept
 whenever `buffer.window >= 0`. A zero window keeps only events whose age
-is exactly zero.
+is exactly zero. A `+Inf` window is an unbounded buffer and keeps every
+event with a finite time.
 
 Mutates `buffer.events` in place and returns `buffer`.
 
@@ -107,15 +108,19 @@ Mutates `buffer.events` in place and returns `buffer`.
 - the same `buffer` after pruning
 
 # Throws
-- `ArgumentError` if `current_time`, `buffer.window`, or any `event.t` is
-  `NaN` or `Inf`
+- `ArgumentError` if `current_time` is not finite (including values that
+  overflow `Float32` to `Inf`), if `buffer.window` is `NaN`, or if any
+  `event.t` is `NaN` or `Inf`
 """
 function prune!(buffer::TemporalBuffer, current_time::Real)
+    isfinite(current_time) ||
+        throw(ArgumentError("current_time must be finite, got $current_time"))
     current_time_f32 = Float32(current_time)
-    isfinite(current_time_f32) ||
-        throw(ArgumentError("current_time must be finite, got $current_time_f32"))
-    isfinite(buffer.window) ||
-        throw(ArgumentError("buffer.window must be finite, got $(buffer.window)"))
+    isfinite(current_time_f32) || throw(
+        ArgumentError("current_time overflows Float32, got $current_time"),
+    )
+    isnan(buffer.window) &&
+        throw(ArgumentError("buffer.window must not be NaN, got $(buffer.window)"))
     for event in buffer.events
         isfinite(event.t) || throw(ArgumentError("event.t must be finite, got $(event.t)"))
     end

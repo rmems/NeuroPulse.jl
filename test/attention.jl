@@ -151,6 +151,10 @@ using Random
                 1.0f0,
             )
             @test_throws ArgumentError prune!(
+                TemporalBuffer(0.25f0, [SpikeEvent(1, 0.10f0, 1.0f0)]),
+                1.0e39,
+            )
+            @test_throws ArgumentError prune!(
                 TemporalBuffer(0.25f0, [SpikeEvent(1, NaN32, 1.0f0)]),
                 1.0f0,
             )
@@ -158,6 +162,13 @@ using Random
                 TemporalBuffer(0.25f0, [SpikeEvent(1, Inf32, 1.0f0)]),
                 1.0f0,
             )
+        end
+
+        @testset "Prune +Inf window keeps all finite events" begin
+            events = [SpikeEvent(1, 0.10f0, 1.0f0), SpikeEvent(2, -100.0f0, 1.0f0)]
+            buffer = TemporalBuffer(Inf32, events)
+            prune!(buffer, 1.0f0)
+            @test length(buffer.events) == 2
         end
     end
 
@@ -373,6 +384,21 @@ using Random
 
         @testset "NaN or Inf spike values throw" begin
             bq = TemporalBuffer(0.3f0, [SpikeEvent(1, 0.5f0, NaN32)])
+            bk = TemporalBuffer(0.3f0, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            @test_throws ArgumentError spike_attention_continuous(bq, bk, v; τ = 0.15f0)
+        end
+
+        @testset "+Inf window admits every finite pair" begin
+            bq = TemporalBuffer(Inf32, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            bk = TemporalBuffer(Inf32, [SpikeEvent(1, 10.0f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            out = spike_attention_continuous(bq, bk, v; τ = 0.15f0)
+            @test out[1] > 0
+        end
+
+        @testset "NaN window throws" begin
+            bq = TemporalBuffer(NaN32, [SpikeEvent(1, 0.5f0, 1.0f0)])
             bk = TemporalBuffer(0.3f0, [SpikeEvent(1, 0.5f0, 1.0f0)])
             v = Float32[1; 2;;]
             @test_throws ArgumentError spike_attention_continuous(bq, bk, v; τ = 0.15f0)

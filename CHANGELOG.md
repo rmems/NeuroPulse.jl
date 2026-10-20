@@ -5,7 +5,8 @@
 ### Fixed
 
 - `prune!` documents and handles empty, all-zero, and threshold-equal buffers;
-  non-finite `current_time`, `window`, or event times now raise `ArgumentError`
+  `NaN` windows, non-finite event times, and non-finite / Float32-overflowing
+  `current_time` raise `ArgumentError`. A `+Inf` window stays unbounded.
 - `normalize_l1!` / `normalize_max!` leave empty or non-positive totals
   unchanged (no `NaN` / divide-by-zero) and reject `NaN`/`Inf` weights
 - Attention kernels and `update_routing!` reject `NaN`/`Inf` scores with
