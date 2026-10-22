@@ -1,0 +1,4 @@
+{
+  "name": "NeuroPulse.jl",
+  "install": "bash .cursor/install.sh"
+}
