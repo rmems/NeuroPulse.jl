@@ -94,9 +94,9 @@ Keeps only events satisfying `(current_time - event.t) <= buffer.window`.
 The comparison is inclusive: an event whose age equals `buffer.window`
 exactly is retained. An empty `events` vector is a no-op. When every event
 time and `current_time` are zero, ages are zero, so all events are kept
-whenever `buffer.window >= 0`. A zero window keeps only events whose age
-is exactly zero. A `+Inf` window is an unbounded buffer and keeps every
-event with a finite time.
+whenever `buffer.window >= 0`. A zero window keeps events whose age is
+`≤ 0` (present and future) and drops older events. A `+Inf` window is an
+unbounded buffer and keeps every event with a finite time.
 
 Mutates `buffer.events` in place and returns `buffer`.
 

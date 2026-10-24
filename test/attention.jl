@@ -123,6 +123,12 @@ using Random
             )
             prune!(zero_window, 1.0f0)
             @test [event.neuron_id for event in zero_window.events] == [1, 3]
+
+            # Future events have negative age and stay under age <= window.
+            future = TemporalBuffer(0.0f0, [SpikeEvent(1, 2.0f0, 1.0f0)])
+            prune!(future, 1.0f0)
+            @test length(future.events) == 1
+            @test future.events[1].t == 2.0f0
         end
 
         @testset "Prune keeps events exactly at the window threshold" begin
@@ -266,6 +272,21 @@ using Random
                 finite_k,
                 Float32[1 NaN32; 0 1],
             )
+        end
+
+        @testset "Finite complex readout is accepted" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0)])
+            v = ComplexF32[1 0; 0 1]
+            out = spike_attention_discrete(q, k, v)
+            @test out == ComplexF32[1, 0]
+        end
+
+        @testset "Overflowed finite spike products throw" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, floatmax(Float32))])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, floatmax(Float32))])
+            v = Float32[1; 2;;]
+            @test_throws ArgumentError spike_attention_discrete(q, k, v)
         end
 
         @testset "No coincidences" begin

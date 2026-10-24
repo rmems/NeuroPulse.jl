@@ -22,9 +22,10 @@ contribute. Matching neuron IDs are required; contributions are scaled by
 
 # Throws
 - `ArgumentError` if `τ ≤ 0`, the readout has no rows, a source `neuron_id`
-  is outside `1:size(readout, 1)`, either buffer window is `NaN`, or any
-  spike time, spike value, or readout entry is `NaN` or `Inf`. A `+Inf`
-  window is allowed and admits every finite pair (`abs(dt) <= Inf`).
+  is outside `1:size(readout, 1)`, either buffer window is `NaN`, any spike
+  time, spike value, or readout entry is `NaN` or `Inf`, or a
+  product/accumulation overflows to a non-finite score. A `+Inf` window is
+  allowed and admits every finite pair (`abs(dt) <= Inf`).
 """
 function spike_attention_continuous(
     source_buffer::TemporalBuffer,
@@ -56,6 +57,7 @@ function spike_attention_continuous(
             end
         end
     end
+    _require_finite_scores(attention, "attention weight")
 
     return _apply_readout(attention, readout)
 end

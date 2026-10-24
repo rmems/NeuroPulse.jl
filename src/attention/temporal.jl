@@ -48,8 +48,9 @@ difference, then applies the readout matrix.
 
 # Throws
 - `ArgumentError` if `τ ≤ 0`, the readout has no rows, a source `neuron_id`
-  is outside `1:size(readout, 1)`, or any spike time, spike value, or readout
-  entry is `NaN` or `Inf`
+  is outside `1:size(readout, 1)`, any spike time, spike value, or readout
+  entry is `NaN` or `Inf`, or a product/accumulation overflows to a
+  non-finite score
 """
 function spike_attention_temporal(
     source_spikes::SpikeTrain,
@@ -75,6 +76,7 @@ function spike_attention_temporal(
             end
         end
     end
+    _require_finite_scores(attention, "attention weight")
 
     return _apply_readout(attention, readout)
 end

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
-@inline function _require_finite(x::Real, label::AbstractString)
+@inline function _require_finite(x::Number, label::AbstractString)
     isfinite(x) || throw(ArgumentError("$label must be finite, got $x"))
     return x
 end
@@ -25,6 +25,13 @@ function _require_finite_readout(readout::AbstractMatrix)
     return readout
 end
 
+function _require_finite_scores(scores, label::AbstractString)
+    for x in scores
+        _require_finite(x, label)
+    end
+    return scores
+end
+
 @inline function _check_positive_rows(v::AbstractMatrix)
     nrows = size(v, 1)
     nrows > 0 || throw(ArgumentError("value matrix must have at least one row"))
@@ -42,7 +49,8 @@ end
 @inline function _apply_readout(weights::AbstractVector{<:Real}, readout::AbstractMatrix)
     length(weights) == size(readout, 1) ||
         throw(DimensionMismatch("attention weights length must match readout rows"))
-    return transpose(readout) * weights
+    out = transpose(readout) * weights
+    return _require_finite_scores(out, "attention score")
 end
 
 """
@@ -65,8 +73,8 @@ only neuron identity and spike values matter.
 
 # Throws
 - `ArgumentError` if the readout has no rows, a source `neuron_id` is outside
-  `1:size(readout, 1)`, or any spike time, spike value, or readout entry is
-  `NaN` or `Inf`
+  `1:size(readout, 1)`, any spike time, spike value, or readout entry is
+  `NaN` or `Inf`, or a product/accumulation overflows to a non-finite score
 """
 function spike_attention_discrete(
     source_spikes::SpikeTrain,
@@ -86,6 +94,7 @@ function spike_attention_discrete(
             end
         end
     end
+    _require_finite_scores(attention, "attention weight")
 
     return _apply_readout(attention, readout)
 end
