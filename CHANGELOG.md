@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Fixed
+
+- `prune!` documents and handles empty, all-zero, and threshold-equal buffers;
+  `NaN` windows, non-finite event times, and non-finite / Float32-overflowing
+  `current_time` raise `ArgumentError`. A `+Inf` window stays unbounded.
+- `normalize_l1!` leaves empty vectors and non-positive sums unchanged;
+  `normalize_max!` leaves empty vectors and non-positive peaks unchanged.
+  Both reject `NaN`/`Inf` weights.
+- Attention kernels and `update_routing!` reject `NaN`/`Inf` scores with
+  `ArgumentError`
+
 ### Added
 
 - Import TemporalFocus.jl attention surface as `NeuroPulse.Attention`

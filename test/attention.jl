@@ -102,6 +102,80 @@ using Random
             prune!(buffer, 1.0f0)
             @test length(buffer.events) == 2
         end
+
+        @testset "Prune all-zero times and zero window" begin
+            # All event times and the reference time are 0; age is 0.
+            buffer = TemporalBuffer(
+                0.25f0,
+                [SpikeEvent(1, 0.0f0, 1.0f0), SpikeEvent(2, 0.0f0, 1.0f0)],
+            )
+            prune!(buffer, 0.0f0)
+            @test length(buffer.events) == 2
+
+            # window == 0 keeps only events whose age is exactly 0 (inclusive).
+            zero_window = TemporalBuffer(
+                0.0f0,
+                [
+                    SpikeEvent(1, 1.0f0, 1.0f0),
+                    SpikeEvent(2, 0.5f0, 1.0f0),
+                    SpikeEvent(3, 1.0f0, 1.0f0),
+                ],
+            )
+            prune!(zero_window, 1.0f0)
+            @test [event.neuron_id for event in zero_window.events] == [1, 3]
+
+            # Future events have negative age and stay under age <= window.
+            future = TemporalBuffer(0.0f0, [SpikeEvent(1, 2.0f0, 1.0f0)])
+            prune!(future, 1.0f0)
+            @test length(future.events) == 1
+            @test future.events[1].t == 2.0f0
+        end
+
+        @testset "Prune keeps events exactly at the window threshold" begin
+            current_time = 1.0f0
+            window = 0.25f0
+            on_threshold = current_time - window
+            buffer = TemporalBuffer(
+                window,
+                [
+                    SpikeEvent(1, on_threshold, 1.0f0),
+                    SpikeEvent(2, on_threshold - 1.0f-6, 1.0f0),
+                    SpikeEvent(3, on_threshold + 1.0f-6, 1.0f0),
+                ],
+            )
+            prune!(buffer, current_time)
+            @test [event.neuron_id for event in buffer.events] == [1, 3]
+        end
+
+        @testset "Prune rejects non-finite times" begin
+            events = [SpikeEvent(1, 0.10f0, 1.0f0)]
+            @test_throws ArgumentError prune!(TemporalBuffer(0.25f0, events), NaN32)
+            @test_throws ArgumentError prune!(TemporalBuffer(0.25f0, events), Inf32)
+            @test_throws ArgumentError prune!(TemporalBuffer(0.25f0, events), -Inf32)
+            @test_throws ArgumentError prune!(
+                TemporalBuffer(NaN32, [SpikeEvent(1, 0.10f0, 1.0f0)]),
+                1.0f0,
+            )
+            @test_throws ArgumentError prune!(
+                TemporalBuffer(0.25f0, [SpikeEvent(1, 0.10f0, 1.0f0)]),
+                1.0e39,
+            )
+            @test_throws ArgumentError prune!(
+                TemporalBuffer(0.25f0, [SpikeEvent(1, NaN32, 1.0f0)]),
+                1.0f0,
+            )
+            @test_throws ArgumentError prune!(
+                TemporalBuffer(0.25f0, [SpikeEvent(1, Inf32, 1.0f0)]),
+                1.0f0,
+            )
+        end
+
+        @testset "Prune +Inf window keeps all finite events" begin
+            events = [SpikeEvent(1, 0.10f0, 1.0f0), SpikeEvent(2, -100.0f0, 1.0f0)]
+            buffer = TemporalBuffer(Inf32, events)
+            prune!(buffer, 1.0f0)
+            @test length(buffer.events) == 2
+        end
     end
 
     @testset "SpikeEvent constructor" begin
@@ -185,6 +259,36 @@ using Random
             @test_throws ArgumentError spike_attention_discrete(q, k, zeros(Float32, 0, 1))
         end
 
+        @testset "NaN or Inf spike values throw" begin
+            v = Float32[1 0; 0 1]
+            nan_q = SpikeTrain([SpikeEvent(1, 0.1f0, NaN32)])
+            inf_k = SpikeTrain([SpikeEvent(1, 0.2f0, Inf32)])
+            finite_q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            finite_k = SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0)])
+            @test_throws ArgumentError spike_attention_discrete(nan_q, finite_k, v)
+            @test_throws ArgumentError spike_attention_discrete(finite_q, inf_k, v)
+            @test_throws ArgumentError spike_attention_discrete(
+                finite_q,
+                finite_k,
+                Float32[1 NaN32; 0 1],
+            )
+        end
+
+        @testset "Finite complex readout is accepted" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0)])
+            v = ComplexF32[1 0; 0 1]
+            out = spike_attention_discrete(q, k, v)
+            @test out == ComplexF32[1, 0]
+        end
+
+        @testset "Overflowed finite spike products throw" begin
+            q = SpikeTrain([SpikeEvent(1, 0.1f0, floatmax(Float32))])
+            k = SpikeTrain([SpikeEvent(1, 0.2f0, floatmax(Float32))])
+            v = Float32[1; 2;;]
+            @test_throws ArgumentError spike_attention_discrete(q, k, v)
+        end
+
         @testset "No coincidences" begin
             q = SpikeTrain([SpikeEvent(1, 0.1f0, 1.0f0)])
             k = SpikeTrain([SpikeEvent(2, 0.2f0, 1.0f0)])
@@ -241,6 +345,22 @@ using Random
             out = spike_attention_temporal(q, k, v; τ = 1.0f0)
             @test out == Float32[0, 0]
         end
+
+        @testset "NaN or Inf spike times or values throw" begin
+            v = Float32[1; 2;;]
+            @test_throws ArgumentError spike_attention_temporal(
+                SpikeTrain([SpikeEvent(1, NaN32, 1.0f0)]),
+                SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0)]),
+                v;
+                τ = 1.0f0,
+            )
+            @test_throws ArgumentError spike_attention_temporal(
+                SpikeTrain([SpikeEvent(1, 0.1f0, Inf32)]),
+                SpikeTrain([SpikeEvent(1, 0.2f0, 1.0f0)]),
+                v;
+                τ = 1.0f0,
+            )
+        end
     end
 
     @testset "Continuous edge cases" begin
@@ -282,15 +402,64 @@ using Random
             v = Float32[1 0; 0 1]
             @test_throws ArgumentError spike_attention_continuous(bq, bk, v; τ = 0.0f0)
         end
+
+        @testset "NaN or Inf spike values throw" begin
+            bq = TemporalBuffer(0.3f0, [SpikeEvent(1, 0.5f0, NaN32)])
+            bk = TemporalBuffer(0.3f0, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            @test_throws ArgumentError spike_attention_continuous(bq, bk, v; τ = 0.15f0)
+        end
+
+        @testset "+Inf window admits every finite pair" begin
+            bq = TemporalBuffer(Inf32, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            bk = TemporalBuffer(Inf32, [SpikeEvent(1, 10.0f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            out = spike_attention_continuous(bq, bk, v; τ = 0.15f0)
+            @test out[1] > 0
+        end
+
+        @testset "NaN window throws" begin
+            bq = TemporalBuffer(NaN32, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            bk = TemporalBuffer(0.3f0, [SpikeEvent(1, 0.5f0, 1.0f0)])
+            v = Float32[1; 2;;]
+            @test_throws ArgumentError spike_attention_continuous(bq, bk, v; τ = 0.15f0)
+        end
     end
 
     @testset "Normalization edge cases" begin
         @testset "All zeros" begin
             l1 = Float32[0, 0, 0]
             @test normalize_l1!(l1) == Float32[0, 0, 0]
+            @test all(isfinite, l1)
 
             maxn = Float32[0, 0, 0]
             @test normalize_max!(maxn) == Float32[0, 0, 0]
+        end
+
+        @testset "Empty vector is a no-op" begin
+            empty_l1 = Float32[]
+            @test normalize_l1!(empty_l1) === empty_l1
+            @test isempty(empty_l1)
+            @test all(isfinite, empty_l1)
+
+            empty_max = Float32[]
+            @test normalize_max!(empty_max) === empty_max
+            @test isempty(empty_max)
+        end
+
+        @testset "Zero sum must not produce NaN" begin
+            l1 = Float32[1, -1, 0]
+            result = normalize_l1!(l1)
+            @test result == Float32[1, -1, 0]
+            @test all(isfinite, result)
+        end
+
+        @testset "NaN or Inf weights throw ArgumentError" begin
+            @test_throws ArgumentError normalize_l1!(Float32[1, NaN32, 2])
+            @test_throws ArgumentError normalize_l1!(Float32[1, Inf32])
+            @test_throws ArgumentError normalize_l1!(Float32[-Inf32, 1])
+            @test_throws ArgumentError normalize_max!(Float32[1, NaN32])
+            @test_throws ArgumentError normalize_max!(Float32[Inf32, 2])
         end
 
         @testset "Single element" begin
