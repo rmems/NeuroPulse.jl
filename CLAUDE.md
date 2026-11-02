@@ -8,7 +8,7 @@ Claude-specific notes only. Boundaries, toolchain policy, and session handoff ru
 ## Commands
 
 Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (installed with juliaup, Linux, CPU only).
-`AGENTS.md` limits local work to Julia 1.12; CI (`ci.yml`) tests 1.12 on `ubuntu-latest` only.
+`AGENTS.md` limits local work to Julia 1.12; CI (`ci.yml`) tests `min` (1.9), `lts`, `1.12`, and `1` on `ubuntu-latest`.
 
 | Command | Status |
 |---|---|
@@ -47,5 +47,5 @@ Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (in
 - `.claude/` is not in `.gitignore` (`.codex/`, `.cursor/*`, `.kilo/`, `.mimocode/` are); do not commit local agent state there.
 - `Manifest.toml` and `experiments/Manifest.toml` are gitignored; `docs/Manifest.toml` is tracked.
 - `README.md` uses HTML for its centered header, so there is no pure-markdown rule here.
-- `Project.toml` declares `julia = "1.9"` but agent and CI practice is 1.12 only.
+- `Project.toml` declares `julia = "1.9"`; CI covers it with the `min` matrix entry, but local agent practice is 1.12 only.
 - Edit only what the task needs.

@@ -17,6 +17,10 @@ TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 test = ["Test", "Random", "Dates", "TOML"]
 
 [compat]
+Dates = "< 0.0.1, 1"
 LinearAlgebra = "< 0.0.1, 1.9"
 Printf = "< 0.0.1, 1.9"
+Random = "< 0.0.1, 1"
+TOML = "1"
+Test = "< 0.0.1, 1"
 julia = "1.9"

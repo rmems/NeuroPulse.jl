@@ -29,7 +29,7 @@ You are an AI coding assistant working on NeuroPulse.jl (`Project.toml` name: `N
 - Run the suite: `julia --project=. -e 'using Pkg; Pkg.test()'`.
 - Run examples: `julia --project=. examples/three_region.jl`, also `examples/six_region.jl` and `examples/reservoir_integration.jl`.
 - Use `git` for version control and follow existing branch naming conventions.
-- Let GitHub Actions validate changes. CI currently tests **Julia 1.12 on ubuntu-latest** only (no OS or version matrix).
+- Let GitHub Actions validate changes. CI (`ci.yml`) tests a Julia version matrix on ubuntu-latest: `min` (the `[compat]` lower bound, 1.9), `lts`, `1.12`, and `1` (current release). Local agent work still uses 1.12.
 
 ## Output & Communication
 
@@ -66,4 +66,4 @@ You are an AI coding assistant working on NeuroPulse.jl (`Project.toml` name: `N
 - When running Julia in this repo, use the `--project=.` environment.
 - If you must use a shared environment, ask the user first.
 - Then verify the active project resolves to this repo's `Project.toml` so the two packages do not collide.
-- `Project.toml` may still list a wider `julia` compat lower bound for the package; **agent/CI practice is 1.12-only** until the owner expands the matrix again.
+- `Project.toml` declares `julia = "1.9"`; CI checks that lower bound via the `min` matrix entry. **Local agent practice is 1.12-only.**
