@@ -39,7 +39,7 @@ Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (in
 - Do not edit `.github/workflows`, `Project.toml`, `Manifest.toml`, or registry metadata without owner approval (`AGENTS.md`). Do not push to `main`; work on feature branches and open PRs.
 - Root `Project.toml` runtime deps are only `LinearAlgebra` and `Printf`; test-only deps go in `[extras]`/`[targets]`, and plotting deps belong in `experiments/Project.toml`.
 - SPDX header `# SPDX-License-Identifier: MIT OR Apache-2.0`: present on `src/`, `examples/`, `docs/make.jl`, and the experiment scripts and helpers, so keep it on new files there. `test/runtests.jl`, `test/test_nero.jl`, `test/experiment_harness.jl`, and everything in `experiments/test/` lack it.
-- Most workflow actions are pinned to commit SHAs with version comments; a few in `ci.yml` use tags. Prefer SHA pins in any approved workflow change.
+- Workflow actions are pinned to commit SHAs with version comments. Keep SHA pins in any approved workflow change.
 
 ## Gotchas
 
