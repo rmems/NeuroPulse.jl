@@ -8,7 +8,7 @@ Claude-specific notes only. Boundaries, toolchain policy, and session handoff ru
 ## Commands
 
 Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (installed with juliaup, Linux, CPU only).
-`AGENTS.md` limits local work to Julia 1.12; CI (`ci.yml`) tests `min` (1.9), `lts`, `1.12`, and `1` on `ubuntu-latest`.
+`AGENTS.md` limits local work to Julia 1.12; CI (`ci.yml`) tests `min` (1.9, on `ubuntu-22.04` because Julia 1.9 no longer starts on `ubuntu-latest`'s glibc), `lts`, `1.12`, and `1` (on `ubuntu-latest`).
 
 | Command | Status |
 |---|---|

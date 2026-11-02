@@ -23,7 +23,12 @@ jobs:
     permissions:
       actions: write
       contents: read
-    runs-on: ubuntu-latest
+    # Julia 1.9's bundled libopenlibm.so requests an executable stack, which the
+    # newer glibc on ubuntu-latest refuses to load ("cannot enable executable
+    # stack ... Invalid argument"), so `julia --version` dies before any test
+    # runs. Run the compat-floor job on ubuntu-22.04 (older glibc) so 1.9 is
+    # still genuinely tested; every other version stays on ubuntu-latest.
+    runs-on: ${{ matrix.version == 'min' && 'ubuntu-22.04' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

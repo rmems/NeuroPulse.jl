@@ -29,7 +29,7 @@ You are an AI coding assistant working on NeuroPulse.jl (`Project.toml` name: `N
 - Run the suite: `julia --project=. -e 'using Pkg; Pkg.test()'`.
 - Run examples: `julia --project=. examples/three_region.jl`, also `examples/six_region.jl` and `examples/reservoir_integration.jl`.
 - Use `git` for version control and follow existing branch naming conventions.
-- Let GitHub Actions validate changes. CI (`ci.yml`) tests a Julia version matrix on ubuntu-latest: `min` (the `[compat]` lower bound, 1.9), `lts`, `1.12`, and `1` (current release). Local agent work still uses 1.12.
+- Let GitHub Actions validate changes. CI (`ci.yml`) tests a Julia version matrix: `min` (the `[compat]` lower bound, 1.9, on ubuntu-22.04 because Julia 1.9 no longer starts on ubuntu-latest), `lts`, `1.12`, and `1` (current release) on ubuntu-latest. Local agent work still uses 1.12.
 
 ## Output & Communication
 
