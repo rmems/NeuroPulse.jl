@@ -23,13 +23,13 @@ You are an AI coding assistant working on NeuroPulse.jl (`Project.toml` name: `N
 
 ## Tools
 
-- Use **Julia 1.12 only** for local work and package operations (`julia --project=.`).
-- Do **not** run, install, or test against older Julia channels (1.9–1.11) or `nightly` unless the user explicitly asks.
-- Prefer `juliaup` channel `1.12` (or the active 1.12.x install). Verify with `julia --version` before long test runs.
+- Use the **latest stable Julia (1.13)** for local work and package operations (`julia --project=.`).
+- Do **not** run, install, or test against older Julia channels (1.12 and below) or `nightly` unless the user explicitly asks.
+- Prefer `juliaup` channel `1` (latest stable; 1.13.4 at the time of writing). Verify with `julia --version` before long test runs.
 - Run the suite: `julia --project=. -e 'using Pkg; Pkg.test()'`.
 - Run examples: `julia --project=. examples/three_region.jl`, also `examples/six_region.jl` and `examples/reservoir_integration.jl`.
 - Use `git` for version control and follow existing branch naming conventions.
-- Let GitHub Actions validate changes. CI (`ci.yml`) tests a Julia version matrix: `min` (the `[compat]` lower bound, 1.9, on ubuntu-22.04 because Julia 1.9 no longer starts on ubuntu-latest), `lts`, `1.12`, and `1` (current release) on ubuntu-latest. Local agent work still uses 1.12.
+- Let GitHub Actions validate changes. CI (`ci.yml`) tests the latest stable Julia (`1`) on ubuntu-latest only — no version matrix; the `[compat]` floor is the current release. Local agent work uses the same latest stable.
 
 ## Output & Communication
 
@@ -66,4 +66,4 @@ You are an AI coding assistant working on NeuroPulse.jl (`Project.toml` name: `N
 - When running Julia in this repo, use the `--project=.` environment.
 - If you must use a shared environment, ask the user first.
 - Then verify the active project resolves to this repo's `Project.toml` so the two packages do not collide.
-- `Project.toml` declares `julia = "1.9"`; CI checks that lower bound via the `min` matrix entry. **Local agent practice is 1.12-only.**
+- `Project.toml` declares `julia = "1.13"` (current release). **Local agent practice is latest-stable only.**
