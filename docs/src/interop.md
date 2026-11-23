@@ -216,6 +216,137 @@ into `update_routing!`.
 
 ---
 
+## Consumer contract: Spikenaut-SNN
+
+**Status:** consumer extension (GH#14 / RM-460), not a re-freeze — every
+shape frozen above stands unchanged.
+
+This section pins the shapes
+[`rmems/Spikenaut-SNN`](https://github.com/rmems/Spikenaut-SNN) accepts from
+the Julia SNN stack, so Spikenaut-SNN #95, #96, and #97 have named shapes to
+map against. Spikenaut's own state contract (Spikenaut-SNN #20) applies
+upstream of everything here: raw state → state adapter → encoder →
+fixed-width stimuli, and logical signals are not physical axons — no
+fabricated signals to fill channels.
+
+### Stimulus frame (baseline)
+
+The live consumer is a 16-channel stimulus frame per tick, produced by
+silicon-bridge `examples/live_telemetry_loop.rs`:
+
+| Property | Pinned value |
+|----------|--------------|
+| Channel count | **16** (`Input[16]` of the shipped `Input[16] → Linear[16×16] → LIF[16] → Output[16]` `NirGraph`) |
+| Tick period | **500 ms** (`TICK_MS` default) |
+| Live lanes | axons **0–4**, live-map order: `mem_util_pct`, `power_w`, `gpu_temp_c`, `sm_clock_mhz`, `mem_clock_mhz` |
+| Idle lanes | axons **5–15** held at exactly `0` — unused width, not fake channels |
+| Active lanes per frame | **1**, rotating (`lane = seq % 5`), because the flashed SoC decodes only the lowest nonzero lane of each `0xAA` frame as one input event and ignores its amplitude (silicon-hdl#112) |
+| Lane value | `max(normalized * STIMULUS_GAIN, 1/256)` — gain-scaled (default `2.5`), floored at one Q8.8 step so the lane always encodes an event; the value affects logging, not on-chip membrane drive |
+| Wire encoding | signed **Q8.8** per lane, SiliconBridge v3.0 UART |
+| Normalization | per-field minmax onto `[0, 1]` with the frozen v3 ranges, clamped — an out-of-range sensor is a saturated axon, not a fault |
+
+### What a SpikeStream.jl encoding must provide to replace it
+
+A candidate encoding (Spikenaut-SNN #97) replaces the rotating baseline only
+if it:
+
+- emits the same **16-wide frame per 500 ms tick** (`Vector{Float32}` /
+  `Vec<f32>`), or names the consumer that accepts a denser layout — current
+  silicon decodes one lane per frame, so multi-lane frames are meaningful
+  only to the software/replay path (silicon-bridge `replay_log`, or an
+  analog `stim` consumer like `LiveStimAdapter`);
+- keeps axons **5–15 at exactly `0`** unless the Spikenaut live map gains a
+  legitimately measured signal there (Spikenaut-SNN #20's no-fabrication
+  rule);
+- preserves the frozen normalization semantics: per-field `[0, 1]`
+  normalization, clamped, `Float32` end-to-end;
+- **fails loud** on missing or non-finite samples — no zero-fill presented
+  as a real measurement;
+- stays representable in signed **Q8.8** after quantization, or states the
+  precision it requires if it targets a different consumer.
+
+### Rate vectors
+
+NeuroPulse rates (`ActivityRegion.last_spike_rate` and the fields callers
+reduce into it) are `Float32` in `[0, 1]` — the same normalization family
+Spikenaut's frozen minmax produces. At the Spikenaut boundary a rate vector
+is a **logical signal row**: it crosses the #20 adapter/encoder boundary as
+`Vector{Float32}` / `Vec<f32>` and lands on axons only through the encoder.
+Rates never write axons directly and never fabricate channels to fill 5–15.
+
+### Spike trains / event lists — ownership
+
+| Type family | Owner | Role |
+|-------------|-------|------|
+| `SpikeEvent` / `SpikeTrain` / `TemporalBuffer` | **TemporalFocus.jl** (imported as `NeuroPulse.Attention`, ADR 0002) | event-list types for coincidence / temporal attention inside the Julia stack |
+| `SpikeEvent{T,I}` / `SpikeTrain` / `SpikeFeatureSnapshot` / `SpikeFeatureStream` | **SpikeStream.jl** | stream feature extraction and candidate stimulus encodings (#97) |
+| `LiveTelemetryEncoder` rate encoder, AER bundle | **Spikenaut-SNN** (Rust, via `axon-encoder`) | spike-side encoding for consumers that eat spikes |
+
+The two Julia `SpikeEvent` / `SpikeTrain` types are **not** unified, and
+TemporalFocus spike types are not merged into NeuroPulse (non-goal).
+Conversion is by field mapping:
+
+- TemporalFocus `SpikeEvent(neuron_id, t, value)`: `neuron_id` is
+  **1-based**, `t::Float32` in caller units, `value` an amplitude.
+- SpikeStream `SpikeEvent(time, neuron_id)`: `time` is any finite `Real`,
+  `neuron_id` an opaque integer label (0-based axon indices are legal).
+
+**Accepted event format at the Spikenaut boundary:** an ordered stream of
+`(axon, tick)` events — `axon` **0-based** in `0..15` (live-map order) and
+`tick` the 500 ms frame index — equivalent per frame to one stimulus vector
+with exactly the addressed lanes nonzero. On current silicon at most one
+event lands per frame (lowest-lane decode), so multi-event-per-tick
+producers serialize across ticks or target the software path.
+
+### Readout
+
+| NeuroPulse | Spikenaut-SNN |
+|------------|---------------|
+| `Vector{Float32}` length `n_out` per `ActivityRegion` | `Output[16]` node of the `NirGraph`; the shipped downstream readout is a **16×3 neuron-major** weight image (`parameters_output_weights.mem`, Q8.8-stored, scored in `f64` as `pred = readout * spikes`) over the 3 `spikenaut-output-row-v1` channels (`comfort`, `temp`, `power`) |
+
+- NeuroPulse → Spikenaut: a readout vector crosses as `Vec<f32>`; when the
+  consumer quantizes, elements snap to the signed Q8.8 grid (step `1/256`).
+- Spikenaut → NeuroPulse: the 16-wide output (per-neuron spikes for the
+  tick) is a valid `ActivityRegion.output` with `n_out = 16`, matching the
+  `RegionRouter` default. Other widths need an explicit adapter — `n_out`
+  is pinned by the router, not negotiated per tick.
+
+### Routing weights
+
+`Vector{Float32}` length `n_regions`, non-negative, sum **~1** (frozen
+above) → Rust `&[f32]` / `Vec<f32>` of the same length. For a Q8.8
+consumer, quantize elementwise at step `1/256` and renormalize to preserve
+sum ~1. The default `min_score` (`0.01f0`) is above one Q8.8 step; any
+floor below `1/256` quantizes to `0` and should be treated as `0` on the
+wire.
+
+### Rust-side summary
+
+| Julia shape | Rust shape |
+|-------------|------------|
+| `Vector{Float32}` stimulus frame | `[f32; 16]` → signed-Q8.8 encode per lane |
+| `Float32` rate | `f32` in `[0, 1]` (finite, clamped) |
+| `(axon, tick)` event | `u8`/`usize` axon `0..15` + `u64` tick index |
+| `Vector{Float32}` readout | `Vec<f32>` / `[f32; 16]` (width `n_out`) |
+| `Vector{Float32}` routing weights | `Vec<f32>` length `n_regions`, sum ~1 |
+
+FFI work now has its named consumer (Spikenaut-SNN), satisfying the
+original GH#14 "no concrete consumer crate" condition; this section is the
+mapping that FFI boundary should target.
+
+### Cross-repo references
+
+- [Spikenaut-SNN #20](https://github.com/rmems/Spikenaut-SNN/issues/20) — nervous-system state contract (adapter/encoder boundary)
+- [Spikenaut-SNN #65](https://github.com/rmems/Spikenaut-SNN/issues/65) — AER bundle export from the canonical `NirGraph`
+- [Spikenaut-SNN #95](https://github.com/rmems/Spikenaut-SNN/issues/95) — SynapticDistill.jl as offline trainer (model-step contract)
+- [Spikenaut-SNN #96](https://github.com/rmems/Spikenaut-SNN/issues/96) — TemporalFocus.jl primitive audit (ownership assigned above)
+- [Spikenaut-SNN #97](https://github.com/rmems/Spikenaut-SNN/issues/97) — SpikeStream.jl encodings vs the rotating baseline
+- [silicon-hdl #112](https://github.com/rmems/silicon-hdl/issues/112) — lowest-nonzero-lane decode constraint
+- silicon-bridge `examples/live_telemetry_loop.rs` — the live baseline producer
+- Spikenaut-SNN `src/stim.rs` / `src/encode.rs` / `src/decision.rs` — analog `stim`, spike-side encoder, and readout contracts
+
+---
+
 ## See also
 
 - [`api.md`](api.md) — exported symbols and behavior notes
