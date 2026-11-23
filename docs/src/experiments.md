@@ -22,7 +22,8 @@ julia +1 --project=experiments experiments/run_all.jl --out-dir experiments/resu
 ```
 
 Give concurrent runs distinct `--out-dir` roots so they do not overwrite one
-another's artifacts.
+another's artifacts. The `+1` channel spec is juliaup's latest stable; on a
+fresh juliaup install run `juliaup add 1` once.
 
 Every entrypoint validates that the canonical NeuroPulse UUID resolves to
 this NeuroPulse checkout. A run contains `config.toml`, `metrics.csv`,

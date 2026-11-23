@@ -18,6 +18,9 @@ julia +1 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instant
 `Pkg.develop(path=".")` points the experiment environment at the working copy of
 NeuroPulse, so experiments always run against the checked-out source.
 
+The `+1` channel spec is juliaup's latest stable. On a fresh juliaup install run
+`juliaup add 1` once; the agent setup scripts already select that channel.
+
 The research harness is run and validated with the latest stable Julia only. Its CairoMakie
 compatibility range (0.12–0.15) lets `Pkg` resolve a compatible renderer in the
 isolated environment.
