@@ -132,8 +132,8 @@ do not establish a downstream training or runtime benefit.
 From the repository root:
 
 ```bash
-julia +1.12.7 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
-julia +1.12.7 --project=experiments experiments/run_all.jl --out-dir experiments/results
+julia +1 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+julia +1 --project=experiments experiments/run_all.jl --out-dir experiments/results
 ```
 
 Give concurrent runs distinct `--out-dir` roots so they do not overwrite one

@@ -7,8 +7,8 @@ Claude-specific notes only. Boundaries, toolchain policy, and session handoff ru
 
 ## Commands
 
-Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (installed with juliaup, Linux, CPU only).
-`AGENTS.md` limits local work to Julia 1.12; CI (`ci.yml`) tests 1.12 on `ubuntu-latest` only.
+Run from the repo root. "Verified" means it ran successfully on the latest stable Julia (entries verified before the compat floor moved to 1.13 ran on Julia 1.12.7, installed with juliaup, Linux, CPU only).
+`AGENTS.md` limits local work to the latest stable Julia; CI (`ci.yml`) tests `1` (latest stable) on `ubuntu-latest` only.
 
 | Command | Status |
 |---|---|
@@ -16,7 +16,7 @@ Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (in
 | `julia --project=. examples/three_region.jl` (also `six_region.jl`, `reservoir_integration.jl`) | verified (each exits 0) |
 | `julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'` then `julia --project=docs docs/make.jl` | verified (build succeeds; `docs/Manifest.toml` is tracked and already points at `..`, and this run rewrote it. Check `git diff docs/Manifest.toml` and revert only the generated change, not any edits you made yourself) |
 | `julia --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'` | not run (instantiate did not finish here; the CairoMakie tree filled the disk) |
-| `julia --project=experiments experiments/test/runtests.jl`, `experiments/run_all.jl [--list]` | not run (need the experiments environment above; `experiments/README.md` shows `+1.12.7` channel syntax) |
+| `julia --project=experiments experiments/test/runtests.jl`, `experiments/run_all.jl [--list]` | not run (need the experiments environment above; `experiments/README.md` shows `+1` channel syntax) |
 | JuliaFormatter 2 check on `src/` and `test/` (`format.yml`) | verified (`JuliaFormatter.format(p; overwrite=false)` returned `true` for both directories on Julia 1.12.7; no `.JuliaFormatter.toml`, so defaults apply) |
 
 - `julia-actions/julia-runtest` in `ci.yml` is followed by `julia-processcoverage` and a Codecov upload that needs a secret. That upload is not a local gate.
@@ -39,7 +39,7 @@ Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (in
 - Do not edit `.github/workflows`, `Project.toml`, `Manifest.toml`, or registry metadata without owner approval (`AGENTS.md`). Do not push to `main`; work on feature branches and open PRs.
 - Root `Project.toml` runtime deps are only `LinearAlgebra` and `Printf`; test-only deps go in `[extras]`/`[targets]`, and plotting deps belong in `experiments/Project.toml`.
 - SPDX header `# SPDX-License-Identifier: MIT OR Apache-2.0`: present on `src/`, `examples/`, `docs/make.jl`, and the experiment scripts and helpers, so keep it on new files there. `test/runtests.jl`, `test/test_nero.jl`, `test/experiment_harness.jl`, and everything in `experiments/test/` lack it.
-- Most workflow actions are pinned to commit SHAs with version comments; a few in `ci.yml` use tags. Prefer SHA pins in any approved workflow change.
+- Workflow actions are pinned to commit SHAs with version comments. Keep SHA pins in any approved workflow change.
 
 ## Gotchas
 
@@ -47,5 +47,5 @@ Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (in
 - `.claude/` is not in `.gitignore` (`.codex/`, `.cursor/*`, `.kilo/`, `.mimocode/` are); do not commit local agent state there.
 - `Manifest.toml` and `experiments/Manifest.toml` are gitignored; `docs/Manifest.toml` is tracked.
 - `README.md` uses HTML for its centered header, so there is no pure-markdown rule here.
-- `Project.toml` declares `julia = "1.9"` but agent and CI practice is 1.12 only.
+- `Project.toml` declares `julia = "1.13"` (current release); local agent practice is latest-stable only.
 - Edit only what the task needs.

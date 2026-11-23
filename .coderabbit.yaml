@@ -11,8 +11,9 @@ reviews:
   path_instructions:
   - path: '{src,test}/**/*.jl'
     instructions: |-
-      Julia package code. [compat] julia = "1.9"; CI runs Julia 1.12
-      (agent/CI practice is 1.12-only). Do not use Base/stdlib APIs newer than
+      Julia package code. [compat] julia = "1.13"; CI runs the latest stable
+      Julia (channel '1'; agent/CI practice is latest-stable-only). Do not use
+      Base/stdlib APIs newer than
       the compat floor without raising it. Review for type stability in hot
       paths (concrete struct field types, no abstractly typed containers, no
       non-const globals, no Any-returning branches), avoidable allocations

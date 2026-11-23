@@ -12,13 +12,16 @@ Pkg; Pkg.test()'` never instantiates this environment.
 One-time, from the repository root:
 
 ```bash
-julia +1.12.7 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+julia +1 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
 ```
 
 `Pkg.develop(path=".")` points the experiment environment at the working copy of
 NeuroPulse, so experiments always run against the checked-out source.
 
-The research harness is run and validated with Julia 1.12 only. Its CairoMakie
+The `+1` channel spec is juliaup's latest stable. On a fresh juliaup install run
+`juliaup add 1` once; the agent setup scripts already select that channel.
+
+The research harness is run and validated with the latest stable Julia only. Its CairoMakie
 compatibility range (0.12–0.15) lets `Pkg` resolve a compatible renderer in the
 isolated environment.
 
@@ -27,10 +30,10 @@ isolated environment.
 From the repository root:
 
 ```bash
-julia +1.12.7 --project=experiments experiments/run_all.jl
-julia +1.12.7 --project=experiments experiments/run_all.jl --list
-julia +1.12.7 --project=experiments experiments/run_all.jl jitter_test
-julia +1.12.7 --project=experiments experiments/jitter_test.jl --out-dir /tmp/jitter-run
+julia +1 --project=experiments experiments/run_all.jl
+julia +1 --project=experiments experiments/run_all.jl --list
+julia +1 --project=experiments experiments/run_all.jl jitter_test
+julia +1 --project=experiments experiments/jitter_test.jl --out-dir /tmp/jitter-run
 ```
 
 `run_all.jl` runs each script in its own Julia process and fixed narrative
@@ -197,9 +200,9 @@ metrics remain comparable with the archived runs.
 ## Controlled attention plus routing
 
 ```bash
-julia +1.12.7 --project=experiments experiments/routing_selection.jl \
+julia +1 --project=experiments experiments/routing_selection.jl \
   --config experiments/configs/routing_selection.toml --out-dir experiments/results
-julia +1.12.7 --project=experiments experiments/test/runtests.jl
+julia +1 --project=experiments experiments/test/runtests.jl
 ```
 
 The fixed full-factorial configuration evaluates 243 scenes, each with the same
@@ -238,12 +241,12 @@ claim about deployed Spikenaut, learning quality, or runtime efficiency.
 ## Offline Spikenaut replay
 
 ```bash
-julia +1.12.7 --project=experiments experiments/spikenaut_replay.jl --out-dir experiments/results
+julia +1 --project=experiments experiments/spikenaut_replay.jl --out-dir experiments/results
 # Both inputs are mandatory when replacing the built-in synthetic fixture:
-julia +1.12.7 --project=experiments experiments/spikenaut_replay.jl \
+julia +1 --project=experiments experiments/spikenaut_replay.jl \
   --trace /path/to/trace.jsonl --manifest /path/to/manifest.json \
   --config experiments/configs/spikenaut_replay.toml --out-dir /path/to/results
-julia +1.12.7 --project=experiments experiments/test/spikenaut_artifacts.jl
+julia +1 --project=experiments experiments/test/spikenaut_artifacts.jl
 ```
 
 The committed [fixture](fixtures/spikenaut/README.md) is synthetic data from the

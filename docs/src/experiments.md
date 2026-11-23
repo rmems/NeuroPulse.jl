@@ -17,12 +17,13 @@ recorded input digest and adapter boundary.
 From the repository root:
 
 ```bash
-julia +1.12.7 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
-julia +1.12.7 --project=experiments experiments/run_all.jl --out-dir experiments/results
+julia +1 --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+julia +1 --project=experiments experiments/run_all.jl --out-dir experiments/results
 ```
 
 Give concurrent runs distinct `--out-dir` roots so they do not overwrite one
-another's artifacts.
+another's artifacts. The `+1` channel spec is juliaup's latest stable; on a
+fresh juliaup install run `juliaup add 1` once.
 
 Every entrypoint validates that the canonical NeuroPulse UUID resolves to
 this NeuroPulse checkout. A run contains `config.toml`, `metrics.csv`,
@@ -144,12 +145,12 @@ and 0.81114 for the data-independent uniform comparator.
 
 ![Fixed-grid attention and routing comparison](assets/experiments/routing_selection.png)
 
-Reproduce from the checkout with Julia 1.12.7:
+Reproduce from the checkout with the latest stable Julia:
 
 ```bash
-julia +1.12.7 --project=experiments experiments/routing_selection.jl \
+julia +1 --project=experiments experiments/routing_selection.jl \
   --config experiments/configs/routing_selection.toml --out-dir experiments/results
-julia +1.12.7 --project=experiments experiments/test/runtests.jl
+julia +1 --project=experiments experiments/test/runtests.jl
 ```
 
 The [routing study evidence bundle](assets/experiments/routing-selection-evidence.tar.gz)
@@ -223,8 +224,8 @@ sets across windows, limiting direct comparisons of their means.
 ![Descriptive allocation window sensitivity on a synthetic Spikenaut fixture](assets/experiments/spikenaut_replay.png)
 
 ```bash
-julia +1.12.7 --project=experiments experiments/spikenaut_replay.jl --out-dir experiments/results
-julia +1.12.7 --project=experiments experiments/spikenaut_replay.jl \
+julia +1 --project=experiments experiments/spikenaut_replay.jl --out-dir experiments/results
+julia +1 --project=experiments experiments/spikenaut_replay.jl \
   --trace /path/to/trace.jsonl --manifest /path/to/manifest.json \
   --config experiments/configs/spikenaut_replay.toml --out-dir /path/to/results
 ```

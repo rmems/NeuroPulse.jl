@@ -177,7 +177,8 @@ _r6(x::Real) = isfinite(x) ? round(Float32(x); sigdigits = 6) : Float32(x)
 _f64(x::Real) = round(Float64(x); sigdigits = 6)
 
 # Two fixed precisions rather than `@sprintf("%.*f", digits, x)`: dynamic
-# precision in Printf needs Julia 1.10; the harness is validated on Julia 1.12.
+# precision in Printf needs Julia 1.10; the harness is validated on the latest
+# stable Julia.
 function _fmt(x::Real)
     isnan(x) && return "NaN"
     isinf(x) && return x > 0 ? "Inf" : "-Inf"
