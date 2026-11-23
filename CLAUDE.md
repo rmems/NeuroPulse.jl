@@ -7,7 +7,7 @@ Claude-specific notes only. Boundaries, toolchain policy, and session handoff ru
 
 ## Commands
 
-Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (installed with juliaup, Linux, CPU only).
+Run from the repo root. "Verified" means it ran successfully on the latest stable Julia (entries verified before the compat floor moved to 1.13 ran on Julia 1.12.7, installed with juliaup, Linux, CPU only).
 `AGENTS.md` limits local work to the latest stable Julia; CI (`ci.yml`) tests `1` (latest stable) on `ubuntu-latest` only.
 
 | Command | Status |
@@ -16,7 +16,7 @@ Run from the repo root. "Verified" means it ran successfully on Julia 1.12.7 (in
 | `julia --project=. examples/three_region.jl` (also `six_region.jl`, `reservoir_integration.jl`) | verified (each exits 0) |
 | `julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'` then `julia --project=docs docs/make.jl` | verified (build succeeds; `docs/Manifest.toml` is tracked and already points at `..`, and this run rewrote it. Check `git diff docs/Manifest.toml` and revert only the generated change, not any edits you made yourself) |
 | `julia --project=experiments -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'` | not run (instantiate did not finish here; the CairoMakie tree filled the disk) |
-| `julia --project=experiments experiments/test/runtests.jl`, `experiments/run_all.jl [--list]` | not run (need the experiments environment above; `experiments/README.md` shows `+1.12.7` channel syntax) |
+| `julia --project=experiments experiments/test/runtests.jl`, `experiments/run_all.jl [--list]` | not run (need the experiments environment above; `experiments/README.md` shows `+1` channel syntax) |
 | JuliaFormatter 2 check on `src/` and `test/` (`format.yml`) | verified (`JuliaFormatter.format(p; overwrite=false)` returned `true` for both directories on Julia 1.12.7; no `.JuliaFormatter.toml`, so defaults apply) |
 
 - `julia-actions/julia-runtest` in `ci.yml` is followed by `julia-processcoverage` and a Codecov upload that needs a secret. That upload is not a local gate.

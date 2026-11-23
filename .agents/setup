@@ -7,7 +7,7 @@
 #
 # Installs only what this repo's CI and manifests need:
 #   - apt: curl, ca-certificates
-#   - juliaup 1.12 [default]
+#   - juliaup 1 (latest stable) [default]
 #   - root and documentation project dependencies
 #   - tool directories exposed to later shells (/etc/profile.d + /usr/local/bin links)
 #
@@ -39,8 +39,8 @@ apt_install() {
 apt_install curl ca-certificates
 
 # --- Julia (juliaup) ---
-# ci.yml and documentation.yml use Julia 1.12.
-JULIA_CHANNEL="1.12"
+# ci.yml and documentation.yml use Julia '1' (latest stable).
+JULIA_CHANNEL="1"
 export PATH="$HOME/.juliaup/bin:$PATH"
 if ! command -v juliaup >/dev/null 2>&1; then
   curl -fsSL https://install.julialang.org | sh -s -- --yes --default-channel "$JULIA_CHANNEL"

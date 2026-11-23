@@ -32,8 +32,8 @@ initialize: |
   tar -xzf /tmp/juliaup.tar.gz -C ~/.juliaup/bin
   echo 'export PATH="$HOME/.juliaup/bin:$PATH"' >> $ENVRC
   export PATH="$HOME/.juliaup/bin:$PATH"
-  juliaup add 1.12
-  juliaup default 1.12
+  juliaup add 1
+  juliaup default 1
 
 maintenance: |
   # Keep Julia project dependencies installed.

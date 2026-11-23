@@ -56,7 +56,7 @@ You are an AI coding assistant working on NeuroPulse.jl (`Project.toml` name: `N
 
 ## Cursor Cloud / local setup
 
-- Julia via `juliaup`: use **1.12** (not 1.9+ “any stable”).
+- Julia via `juliaup`: use the **latest stable** channel `1` (1.13.x at the time of writing).
 - Standard setup: `julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.test()'`.
 - Examples: `julia --project=. examples/three_region.jl` (also `six_region.jl`, `reservoir_integration.jl`).
 
