@@ -17,6 +17,7 @@ using Test
         mask[1] = mask[16] = true
         scores = transpose(weights) * Float64.(mask)
         @test size(weights) == (16, 3)
+        # Small multiples of 1/256 sum exactly in Float64 here.
         @test scores == [0.75, 1.5, 0.375] # comfort, temp, power
 
         for readout in (Float32.(mask), Float32.(scores))
@@ -25,7 +26,7 @@ using Test
             @test update_routing!(router, regions) === nothing
             @test sum(router.routing_weights) ≈ 1.0f0
 
-            wrong_width = [ActivityRegion(0.0f0, readout[1:end-1]), regions[2]]
+            wrong_width = [ActivityRegion(0.0f0, readout[1:(end-1)]), regions[2]]
             @test_throws ArgumentError update_routing!(router, wrong_width)
             for bad_rate in (-0.01f0, 1.01f0, Float32(NaN), Float32(Inf))
                 bad = [ActivityRegion(bad_rate, readout), regions[2]]
