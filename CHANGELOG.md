@@ -20,6 +20,9 @@
   `temporal_weight`, `normalize_l1!`, `normalize_max!`) from
   `rmems/TemporalFocus.jl@eb38c70` (ADR 0002, #43)
 - Executable GH#14 interop-contract tests for `ActivityRegion` / `RegionRouter` shapes (#14)
+- Spikenaut-SNN consumer data-shape section in `docs/interop.md` — stimulus
+  frame, rate/readout/routing-weight mappings, and spike-train ownership
+  (#14)
 - `save_state` / `load_state!` (`load_state` alias) for `RegionRouter` checkpointing (#28)
 - `LICENSE-MIT` and `LICENSE-APACHE-2.0` license files
 - SPDX license identifiers to source files
